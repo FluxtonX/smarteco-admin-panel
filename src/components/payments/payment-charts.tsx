@@ -61,7 +61,7 @@ export function RevenueWasteChart({ data }: { data: RevenueWasteData[] }) {
                             outerRadius={80}
                             paddingAngle={0}
                             dataKey="value"
-                            label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}
+                            label={({ name, percent }) => `${name} ${Math.round((percent || 0) * 100)}%`}
                             labelLine={true}
                         >
                             {data.map((entry, index) => (
