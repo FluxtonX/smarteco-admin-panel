@@ -16,6 +16,7 @@ export default function AuditLogsPage() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<AuditStatus | "All">("All");
     const [moduleFilter, setModuleFilter] = useState<AuditModule | "All">("All");
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         Promise.all([auditService.getLogs(), auditService.getStats()]).then(([logs, s]) => {
@@ -45,31 +46,33 @@ export default function AuditLogsPage() {
 
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Topbar />
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
 
                 <main className="flex-1 overflow-y-auto animate-in fade-in duration-700">
                     {/* Page Header */}
-                    <div className="px-8 pt-8 pb-6">
-                        <h1 className="text-[28px] font-bold text-gray-800 tracking-tight leading-none">Audit Logs</h1>
-                        <p className="text-[14px] font-medium text-gray-400 mt-1">System activity and admin action tracking</p>
+                    <div className="px-4 md:px-8 pt-6 md:pt-8 pb-4 md:pb-6">
+                        <h1 className="text-2xl md:text-[28px] font-bold text-gray-800 tracking-tight leading-none">Audit Logs</h1>
+                        <p className="text-[12px] md:text-[14px] font-medium text-gray-400 mt-1">System activity and admin action tracking</p>
                     </div>
 
-                    <div className="px-8 pb-12 space-y-8">
+                    <div className="px-4 md:px-8 pb-12 space-y-6 md:space-y-8">
                         {/* Stats Cards */}
                         <AuditStatsGrid stats={stats} />
 
                         {/* Table + Filters */}
-                        <AuditTable
-                            logs={filteredLogs}
-                            search={search}
-                            statusFilter={statusFilter}
-                            moduleFilter={moduleFilter}
-                            onSearchChange={setSearch}
-                            onStatusChange={setStatusFilter}
-                            onModuleChange={setModuleFilter}
-                        />
+                        <div className="-mx-4 md:mx-0 overflow-x-auto">
+                            <AuditTable
+                                logs={filteredLogs}
+                                search={search}
+                                statusFilter={statusFilter}
+                                moduleFilter={moduleFilter}
+                                onSearchChange={setSearch}
+                                onStatusChange={setStatusFilter}
+                                onModuleChange={setModuleFilter}
+                            />
+                        </div>
 
                         {/* Recent Activity Timeline — shows the latest 5 unfiltered logs */}
                         <ActivityTimeline logs={allLogs.slice(0, 5)} />

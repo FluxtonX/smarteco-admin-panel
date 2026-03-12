@@ -21,6 +21,7 @@ export default function PaymentsPage() {
     const [revenueWaste, setRevenueWaste] = useState<RevenueWasteData[]>([]);
     const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -53,22 +54,24 @@ export default function PaymentsPage() {
 
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Topbar />
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
 
-                <main className="flex-1 overflow-y-auto p-8 space-y-8 animate-in fade-in duration-700">
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 animate-in fade-in duration-700">
                     {/* Header */}
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1">
-                            <h1 className="text-[28px] font-bold text-[#1A1A1A] tracking-tight">
+                            <h1 className="text-2xl md:text-[28px] font-bold text-[#1A1A1A] tracking-tight">
                                 Payment Management
                             </h1>
-                            <p className="text-[13px] font-medium text-gray-500">
+                            <p className="text-[12px] md:text-[13px] font-medium text-gray-500">
                                 Mobile money transaction monitoring
                             </p>
                         </div>
-                        <LiveStatus />
+                        <div className="self-start sm:self-auto">
+                            <LiveStatus />
+                        </div>
                     </div>
 
                     {/* Stats Row */}
@@ -85,7 +88,9 @@ export default function PaymentsPage() {
                     </div>
 
                     {/* Transactions Table Section */}
-                    <PaymentTable transactions={transactions} />
+                    <div className="-mx-4 md:mx-0 overflow-x-auto">
+                        <PaymentTable transactions={transactions} />
+                    </div>
                 </main>
             </div>
         </div>

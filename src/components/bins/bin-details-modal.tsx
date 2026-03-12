@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -20,6 +21,15 @@ interface BinDetailsModalProps {
 }
 
 export function BinDetailsModal({ bin, isOpen, onClose }: BinDetailsModalProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        if (isOpen) {
+            setMounted(true);
+        } else {
+            setMounted(false);
+        }
+    }, [isOpen]);
+
     if (!bin) return null;
 
     return (
@@ -72,45 +82,51 @@ export function BinDetailsModal({ bin, isOpen, onClose }: BinDetailsModalProps) 
                     <div className="space-y-4">
                         <h3 className="text-[14px] font-bold text-[#1A1A1A] tracking-tight whitespace-nowrap">Fill Level History (24h)</h3>
                         <div className="h-[200px] w-full bg-[#FFFFFF] relative pr-6 pb-2">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={bin.history} margin={{ top: 5, right: 5, bottom: 20, left: -30 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                    <XAxis
-                                        dataKey="time"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 9, fill: '#636E72', fontWeight: 500 }}
-                                        dy={10}
-                                    />
-                                    <YAxis
-                                        axisLine={false}
-                                        stroke="#E5E7EB"
-                                        tickLine={false}
-                                        tick={{ fontSize: 9, fill: '#636E72', fontWeight: 500 }}
-                                        domain={[0, 100]}
-                                        ticks={[0, 25, 50, 75, 100]}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#fff',
-                                            borderRadius: '8px',
-                                            border: '1px solid #E5E7EB',
-                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                            padding: '8px'
-                                        }}
-                                        labelStyle={{ fontSize: '9px', color: '#636E72', marginBottom: '4px' }}
-                                        itemStyle={{ fontSize: '10px', fontWeight: '800', color: '#15803D' }}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="level"
-                                        stroke="#15803D"
-                                        strokeWidth={2}
-                                        dot={{ fill: '#15803D', r: 3, stroke: '#fff', strokeWidth: 1.5 }}
-                                        activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+                            {mounted ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={bin.history} margin={{ top: 5, right: 5, bottom: 20, left: -30 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                        <XAxis
+                                            dataKey="time"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 9, fill: '#636E72', fontWeight: 500 }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            stroke="#E5E7EB"
+                                            tickLine={false}
+                                            tick={{ fontSize: 9, fill: '#636E72', fontWeight: 500 }}
+                                            domain={[0, 100]}
+                                            ticks={[0, 25, 50, 75, 100]}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#fff',
+                                                borderRadius: '8px',
+                                                border: '1px solid #E5E7EB',
+                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                                padding: '8px'
+                                            }}
+                                            labelStyle={{ fontSize: '9px', color: '#636E72', marginBottom: '4px' }}
+                                            itemStyle={{ fontSize: '10px', fontWeight: '800', color: '#15803D' }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="level"
+                                            stroke="#15803D"
+                                            strokeWidth={2}
+                                            dot={{ fill: '#15803D', r: 3, stroke: '#fff', strokeWidth: 1.5 }}
+                                            activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-50/50 rounded-lg">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

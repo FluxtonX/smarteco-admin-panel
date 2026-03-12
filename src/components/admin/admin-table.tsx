@@ -119,7 +119,7 @@ export function AdminTable({ admins, onEdit, onDelete }: AdminTableProps) {
                                     </td>
                                     {/* Actions */}
                                     <td className="px-5 py-4">
-                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-2 transition-opacity">
                                             <button
                                                 onClick={() => onEdit?.(admin)}
                                                 className="p-1.5 text-gray-400 hover:text-primary-green hover:bg-green-50 rounded-[2px] transition-all border border-transparent hover:border-green-100"

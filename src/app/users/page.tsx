@@ -21,6 +21,7 @@ export default function UsersPage() {
     const [users, setUsers] = useState<UserRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("all");
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -54,50 +55,51 @@ export default function UsersPage() {
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden font-sans text-[#2D3436]">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <Topbar />
-                <main className="flex-1 overflow-y-auto p-8 space-y-8 bg-[#f8f9fa]">
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 bg-[#f8f9fa]">
                     {/* Header Section */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-row items-start justify-between gap-6">
                         <div>
-                            <h1 className="text-2xl font-bold text-[#1A1A1A] tracking-tight leading-tight">User Management</h1>
-                            <p className="text-sm text-[#636E72] font-semibold mt-1">
-                                Manage and monitor system users and tiers
+                            <h1 className="text-xl md:text-2xl font-bold text-[#1A1A1A] tracking-tight leading-tight">User Management</h1>
+                            <p className="text-[12px] md:text-sm text-[#636E72] font-semibold mt-1">
+                                Manage and monitor system users
                             </p>
                         </div>
-                        <LiveStatus />
+                        <div className="flex-shrink-0 pt-1">
+                            <LiveStatus />
+                        </div>
                     </div>
-
-                    {/* User Summary Stats - Forced Single Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* User Summary Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         <UserSummaryCard title="Total Users" count={5} subtext="Manage 5 registered users" icon={Users} />
                         <UserSummaryCard title="Residential Users" count={3} subtext="Private households" icon={Home} />
                         <UserSummaryCard title="Business Accounts" count={2} subtext="Commercial entities" icon={Building2} />
                         <UserSummaryCard title="Suspended" count={1} subtext="Pending verification" icon={UserX} />
                     </div>
 
-                    {/* Tabs / Filters Section - 5 Buttons with Icons */}
-                    <div className="pt-2">
+                    {/* Tabs / Filters Section - Responsive Horizontal Scroll */}
+                    <div className="pt-2 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto scrollbar-hide">
                         <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-full">
-                            <TabsList className="bg-transparent border-none p-0 h-auto flex flex-wrap gap-3">
-                                <TabsTrigger value="all" className="text-[11px] font-bold uppercase px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
+                            <TabsList className="bg-transparent border-none p-0 h-auto flex whitespace-nowrap gap-3 min-w-max pb-2">
+                                <TabsTrigger value="all" className="text-[10px] md:text-[11px] font-bold uppercase px-4 md:px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
                                     <Users className="w-3.5 h-3.5" />
                                     <span>All Users (5)</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="residential" className="text-[11px] font-bold uppercase px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
+                                <TabsTrigger value="residential" className="text-[10px] md:text-[11px] font-bold uppercase px-4 md:px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
                                     <Home className="w-3.5 h-3.5" />
                                     <span>Residential (3)</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="business" className="text-[11px] font-bold uppercase px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
+                                <TabsTrigger value="business" className="text-[10px] md:text-[11px] font-bold uppercase px-4 md:px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
                                     <Building2 className="w-3.5 h-3.5" />
                                     <span>Business (2)</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="suspended" className="text-[11px] font-bold uppercase px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
+                                <TabsTrigger value="suspended" className="text-[10px] md:text-[11px] font-bold uppercase px-4 md:px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
                                     <UserX className="w-3.5 h-3.5" />
                                     <span>Suspended (1)</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="tier" className="text-[11px] font-bold uppercase px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
+                                <TabsTrigger value="tier" className="text-[10px] md:text-[11px] font-bold uppercase px-4 md:px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">
                                     <BarChart3 className="w-3.5 h-3.5" />
                                     <span>Tier Distribution</span>
                                 </TabsTrigger>
@@ -109,29 +111,34 @@ export default function UsersPage() {
                         <TierDistribution />
                     ) : (
                         <>
-                            {/* Search and Export Row - 75% Search */}
-                            <div className="flex items-center space-x-4">
+                            {/* Search and Export Row - Stack on mobile */}
+                            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
                                 <div className="relative flex-[3]">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#B2BEC3]" />
                                     <Input
                                         placeholder="Search by name, phone, or ID..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 h-11 bg-white border-gray-200 shadow-sm focus:ring-primary-green/20 rounded-[4px] text-sm text-[#2D3436] placeholder:text-[#B2BEC3] font-medium"
+                                        className="pl-10 h-11 bg-white border-gray-200 shadow-sm focus:ring-primary-green/20 rounded-[4px] text-sm text-[#2D3436] placeholder:text-[#B2BEC3] font-medium w-full"
                                     />
                                 </div>
-                                <div className="flex-1 flex space-x-3">
-                                    <Button className="flex-1 h-11 bg-white border border-gray-200 text-[#636E72] font-bold hover:bg-green-50 hover:text-primary-green hover:border-green-200 shadow-sm rounded-[4px] flex items-center justify-center transition-all">
+                                <div className="flex flex-row items-center gap-3">
+                                    <Button className="flex-1 md:flex-none h-11 bg-white border border-gray-200 text-[#636E72] font-bold hover:bg-green-50 hover:text-primary-green hover:border-green-200 shadow-sm rounded-[4px] flex items-center justify-center transition-all px-4">
                                         <FileDown className="w-4 h-4 mr-2" />
                                         <span>Export</span>
                                     </Button>
-                                    <Link href="/users/create">
-                                        <Button className="h-11 bg-primary-green text-white font-bold hover:bg-green-700 px-6 shadow-md shadow-green-100 rounded-[4px] flex items-center justify-center transition-all">
+                                    <Link href="/users/create" className="flex-1 md:flex-none">
+                                        <Button className="w-full h-11 bg-primary-green text-white font-bold hover:bg-green-700 px-6 shadow-md shadow-green-100 rounded-[4px] flex items-center justify-center transition-all">
                                             <UserPlus className="w-4 h-4 mr-2" />
-                                            <span>Create New</span>
+                                            <span>Create</span>
                                         </Button>
                                     </Link>
                                 </div>
+                            </div>
+
+                            {/* Main Table - Horizontal Scroll on small screens handled by parent min-w-0 */}
+                            <div className="-mx-4 md:mx-0 overflow-x-auto">
+                                <UserTable users={filteredUsers} isLoading={isLoading} />
                             </div>
 
                             {/* Main Table */}

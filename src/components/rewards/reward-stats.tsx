@@ -31,7 +31,7 @@ export function RewardStats({ stats }: RewardStatsProps) {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {stats.map((stat, idx) => (
                 <Card key={idx} className="p-4 border-gray-100 shadow-sm rounded-[8px] flex flex-row justify-between items-start group hover:shadow-md transition-all">
                     <div className="flex-1 space-y-2">

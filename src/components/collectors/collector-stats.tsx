@@ -21,7 +21,7 @@ function StatCard({ title, value, type }: CollectorStatProps) {
     const { icon: Icon, color } = iconMap[type];
 
     return (
-        <Card className="flex-1 min-w-[200px] h-[98px] rounded-[4px] border border-gray-100 bg-white p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative cursor-default">
+        <Card className="flex-1 min-w-[140px] h-[98px] rounded-[4px] border border-gray-100 bg-white p-3 md:p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative cursor-default">
             <div className="flex justify-between items-start relative z-10">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{title}</p>
                 <div className={cn("p-1.5 rounded-[4px] shadow-sm transition-all group-hover:bg-opacity-100 group-hover:text-white", color,
@@ -40,7 +40,7 @@ function StatCard({ title, value, type }: CollectorStatProps) {
 
 export function CollectorStats({ stats }: { stats: any[] }) {
     return (
-        <div className="flex gap-4 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
             {stats.map((stat, index) => (
                 <StatCard key={index} {...stat} />
             ))}

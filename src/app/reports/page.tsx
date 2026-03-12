@@ -18,6 +18,7 @@ export default function ReportsPage() {
     const [templates, setTemplates] = useState<ReportTemplate[]>([]);
     const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -46,22 +47,22 @@ export default function ReportsPage() {
 
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Topbar />
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
 
-                <main className="flex-1 overflow-y-auto p-8 space-y-8 animate-in fade-in duration-700">
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 animate-in fade-in duration-700">
                     {/* Header */}
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1">
-                            <h1 className="text-[28px] font-bold text-[#1A1A1A] tracking-tight leading-none">
+                            <h1 className="text-2xl md:text-[28px] font-bold text-[#1A1A1A] tracking-tight leading-none">
                                 Reports
                             </h1>
-                            <p className="text-[14px] font-medium text-gray-500">
+                            <p className="text-[13px] md:text-[14px] font-medium text-gray-500">
                                 Generate and download system reports
                             </p>
                         </div>
-                        <Button className="bg-[#DCFCE7] text-[#166534] hover:bg-[#bbf7d0] border border-[#166534]/20 text-[12px] font-bold uppercase tracking-widest h-11 px-8 flex items-center gap-2 rounded-[2px] shadow-sm">
+                        <Button className="bg-[#DCFCE7] text-[#166534] hover:bg-[#bbf7d0] border border-[#166534]/20 text-[11px] md:text-[12px] font-bold uppercase tracking-widest h-10 md:h-11 px-6 md:px-8 flex items-center justify-center gap-2 rounded-[2px] shadow-sm w-full sm:w-auto">
                             <Download className="w-4 h-4" />
                             Generate Report
                         </Button>

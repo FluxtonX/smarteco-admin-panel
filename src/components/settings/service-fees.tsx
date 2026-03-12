@@ -35,28 +35,26 @@ export function ServiceFeesCard({ fees, onChange }: ServiceFeesCardProps) {
                 <h3 className="text-[16px] font-bold text-gray-700 tracking-tight leading-none">Service Fees</h3>
             </div>
 
-            {/* 2×2 Fee Grid — each cell is a full bordered box */}
-            <div className="space-y-3">
-                {FEE_GRID.map((row, ri) => (
-                    <div key={ri} className="grid grid-cols-2 gap-3">
-                        {row.map(({ key, label }) => (
-                            <div
-                                key={key}
-                                className="flex items-center justify-between border border-gray-200 rounded-[2px] px-5 py-3 bg-white"
-                            >
-                                <span className="text-[13px] font-medium text-gray-600">{label}</span>
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        value={fees[key]}
-                                        onChange={(e) => update(key, e.target.value)}
-                                        className="w-24 h-8 border border-gray-300 rounded-[2px] px-2 text-[13px] font-semibold text-gray-700 text-right outline-none hover:border-gray-400 focus:border-primary-green transition-all bg-white"
-                                    />
-                                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">RWF</span>
-                                </div>
+            {/* Responsive Fee Grid — each cell is a full bordered box */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {FEE_GRID.flat().map(({ key, label }) => (
+                    <div
+                        key={key}
+                        className="flex flex-col xs:flex-row xs:items-center justify-between gap-3 border border-gray-200 rounded-[2px] px-5 py-4 bg-white hover:border-gray-300 transition-colors shadow-sm"
+                    >
+                        <span className="text-[13px] font-bold text-gray-700">{label}</span>
+                        <div className="flex items-center gap-2 shrink-0 self-end xs:self-auto">
+                            <div className="relative">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">RWF</span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={fees[key]}
+                                    onChange={(e) => update(key, e.target.value)}
+                                    className="w-28 h-9 border border-gray-200 rounded-[4px] pl-10 pr-3 text-[14px] font-bold text-gray-800 outline-none hover:border-gray-400 focus:border-primary-green transition-all bg-gray-50/30"
+                                />
                             </div>
-                        ))}
+                        </div>
                     </div>
                 ))}
             </div>

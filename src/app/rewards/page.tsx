@@ -27,6 +27,7 @@ export default function RewardsPage() {
     const [trends, setTrends] = useState<TrendData[]>([]);
     const [referrals, setReferrals] = useState<ReferralPerformanceData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -61,22 +62,24 @@ export default function RewardsPage() {
 
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Topbar />
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
 
-                <main className="flex-1 overflow-y-auto p-8 space-y-8 animate-in fade-in duration-700">
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 animate-in fade-in duration-700">
                     {/* Header */}
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-row items-start justify-between gap-6">
                         <div className="space-y-1">
-                            <h1 className="text-[28px] font-bold text-[#1A1A1A] tracking-tight">
-                                EcoPoints & Rewards Analytics
+                            <h1 className="text-2xl md:text-[28px] font-bold text-[#1A1A1A] tracking-tight">
+                                EcoPoints & Rewards
                             </h1>
-                            <p className="text-[13px] font-medium text-gray-500">
-                                Comprehensive rewards program monitoring
+                            <p className="text-[12px] md:text-[13px] font-medium text-gray-500">
+                                Rewards program monitoring
                             </p>
                         </div>
-                        <LiveStatus />
+                        <div className="flex-shrink-0 pt-1">
+                            <LiveStatus />
+                        </div>
                     </div>
 
                     {/* Stats Row */}

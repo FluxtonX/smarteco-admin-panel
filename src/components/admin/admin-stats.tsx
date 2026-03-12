@@ -44,7 +44,7 @@ export function AdminStatsGrid({ stats }: AdminStatsProps) {
             {STAT_CARDS.map(({ key, label, icon: Icon, iconBg, iconColor }) => (
                 <div
                     key={key}
-                    className="bg-white border border-gray-200 rounded-[4px] p-5 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow"
+                    className="bg-white border border-gray-200 rounded-[4px] p-3 md:p-5 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow"
                 >
                     <div className="space-y-1">
                         <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{label}</p>

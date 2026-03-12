@@ -14,7 +14,7 @@ interface UserSummaryCardProps {
 
 export function UserSummaryCard({ title, count, subtext, icon: Icon }: UserSummaryCardProps) {
     return (
-        <Card className="flex-1 min-w-[240px] h-[98px] rounded-[4px] border border-gray-100 bg-white p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+        <Card className="flex-1 min-w-[140px] h-[98px] rounded-[4px] border border-gray-100 bg-white p-3 md:p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
             <div className="flex justify-between items-start relative z-10">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{title}</p>
                 <div className="p-1.5 rounded-[4px] bg-green-50 text-primary-green group-hover:bg-primary-green group-hover:text-white transition-all shadow-sm">

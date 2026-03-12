@@ -31,6 +31,7 @@ export default function AdminManagementPage() {
     const [matrix, setMatrix] = useState<RolePermissionMatrix[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Add Admin form state
     const [form, setForm] = useState({
@@ -94,38 +95,42 @@ export default function AdminManagementPage() {
 
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Topbar />
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
 
                 <main className="flex-1 overflow-y-auto animate-in fade-in duration-700">
                     {/* Page Header */}
-                    <div className="px-8 pt-8 pb-6 flex items-start justify-between">
+                    <div className="px-4 md:px-8 pt-6 md:pt-8 pb-4 md:pb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div className="space-y-1">
-                            <h1 className="text-[28px] font-bold text-gray-800 tracking-tight leading-none">Admin Management</h1>
-                            <p className="text-[14px] font-medium text-gray-400">{admins.length} admin account{admins.length !== 1 ? "s" : ""}</p>
+                            <h1 className="text-2xl md:text-[28px] font-bold text-gray-800 tracking-tight leading-none">Admin Management</h1>
+                            <p className="text-[12px] md:text-[14px] font-medium text-gray-400">{admins.length} admin account{admins.length !== 1 ? "s" : ""}</p>
                         </div>
                         <Button
                             onClick={() => setShowModal(true)}
-                            className="h-10 px-5 bg-primary-green hover:bg-[#15803D] text-[12px] font-bold rounded-[4px] shadow-lg shadow-green-200/50 flex items-center gap-2"
+                            className="h-10 px-5 bg-primary-green hover:bg-[#15803D] text-[12px] font-bold rounded-[4px] shadow-lg shadow-green-200/50 flex items-center justify-center gap-2 w-full sm:w-auto"
                         >
                             <Plus className="w-4 h-4" />
                             Add Admin
                         </Button>
                     </div>
 
-                    <div className="px-8 pb-10 space-y-8">
+                    <div className="px-4 md:px-8 pb-10 space-y-6 md:space-y-8">
                         {/* Stats Cards */}
                         <AdminStatsGrid stats={stats} />
 
                         {/* Admin Table */}
-                        <AdminTable
-                            admins={admins}
-                            onDelete={handleDelete}
-                        />
+                        <div className="-mx-4 md:mx-0 overflow-x-auto">
+                            <AdminTable
+                                admins={admins}
+                                onDelete={handleDelete}
+                            />
+                        </div>
 
                         {/* Role Permission Matrix */}
-                        <RolePermissionMatrixTable matrix={matrix} />
+                        <div className="-mx-4 md:mx-0 overflow-x-auto">
+                            <RolePermissionMatrixTable matrix={matrix} />
+                        </div>
                     </div>
                 </main>
             </div>
@@ -199,10 +204,10 @@ export default function AdminManagementPage() {
                                             key={s}
                                             onClick={() => setForm({ ...form, status: s })}
                                             className={`flex-1 h-9 border rounded-[2px] text-[12px] font-bold transition-all ${form.status === s
-                                                    ? s === "Active"
-                                                        ? "bg-green-50 border-green-300 text-green-700"
-                                                        : "bg-gray-100 border-gray-300 text-gray-600"
-                                                    : "border-gray-200 text-gray-400 hover:border-gray-300"
+                                                ? s === "Active"
+                                                    ? "bg-green-50 border-green-300 text-green-700"
+                                                    : "bg-gray-100 border-gray-300 text-gray-600"
+                                                : "border-gray-200 text-gray-400 hover:border-gray-300"
                                                 }`}
                                         >
                                             {s}

@@ -16,7 +16,7 @@ interface BinStatProps {
 
 function StatCard({ title, value, icon: Icon, color, hoverColor }: BinStatProps) {
     return (
-        <Card className="flex-1 min-w-[200px] h-[98px] rounded-[4px] border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all group overflow-hidden relative cursor-default">
+        <Card className="flex-1 min-w-[140px] h-[98px] rounded-[4px] border border-gray-100 bg-white p-3 md:p-6 shadow-sm hover:shadow-md transition-all group overflow-hidden relative cursor-default">
             <div className="flex items-center justify-between h-full relative z-10">
                 <div className="space-y-1">
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em]">{title}</p>
@@ -67,7 +67,7 @@ export function BinStats({ stats }: { stats: BinStatsData | null }) {
     return (
         <div className="space-y-4">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {items.map((item, index) => (
                     <StatCard key={index} {...item} />
                 ))}

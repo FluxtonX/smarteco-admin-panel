@@ -24,7 +24,7 @@ export function StatCard({
     trend = "up"
 }: StatCardProps) {
     return (
-        <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all group h-[98px] w-full max-w-[256.25px] rounded-[4px] border-width-[1px] opacity-100">
+        <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all group h-[98px] w-full rounded-[4px] border-width-[1px] opacity-100">
             <CardContent className="p-[10px] h-full flex flex-col justify-center">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col w-full py-1">

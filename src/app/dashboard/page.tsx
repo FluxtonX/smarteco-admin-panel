@@ -18,23 +18,25 @@ export default function DashboardPage() {
     }, []);
 
     return (
-        <div className="p-8 space-y-8 max-w-[1600px] mx-auto">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1600px] mx-auto">
             {/* Header Section */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">Dashboard Overview</h1>
-                    <p className="text-sm text-gray-500 font-medium mt-1">
-                        Real-time analytics and system monitoring •
-                        <span className="text-gray-400 font-normal ml-1">
+            <div className="flex flex-row items-center justify-between gap-4">
+                <div className="min-w-0">
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight leading-tight truncate">Dashboard</h1>
+                    <p className="text-[10px] md:text-sm text-gray-500 font-medium mt-1 truncate">
+                        Real-time analytics <span className="hidden xs:inline">•</span>
+                        <span className="text-gray-400 font-normal ml-1 hidden xs:inline">
                             {currentTime ? `Last updated: ${currentTime}` : "Loading timestamp..."}
                         </span>
                     </p>
                 </div>
-                <LiveStatus />
+                <div className="flex-shrink-0">
+                    <LiveStatus />
+                </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <StatCard
                     title="Total Users"
                     value="4,041"

@@ -17,6 +17,7 @@ export default function SystemSettingsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [savedMessage, setSavedMessage] = useState("");
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         settingsService.getSettings().then((s) => {
@@ -57,21 +58,21 @@ export default function SystemSettingsPage() {
 
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Topbar />
+                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
 
-                <main className="flex-1 overflow-y-auto pb-28 animate-in fade-in duration-700">
+                <main className="flex-1 overflow-y-auto pb-32 animate-in fade-in duration-700">
                     {/* Page Header */}
-                    <div className="px-8 pt-8 pb-6 flex items-start justify-between">
+                    <div className="px-4 md:px-8 pt-6 md:pt-8 pb-4 md:pb-6">
                         <div className="space-y-1">
-                            <h1 className="text-[28px] font-bold text-gray-800 tracking-tight leading-none">System Settings</h1>
-                            <p className="text-[14px] font-medium text-gray-400">Configure assignment logic, time slots, EcoPoints, and notifications</p>
+                            <h1 className="text-2xl md:text-[28px] font-bold text-gray-800 tracking-tight leading-none">System Settings</h1>
+                            <p className="text-[12px] md:text-[14px] font-medium text-gray-400">Configure assignment logic, tiers, and notifications</p>
                         </div>
                     </div>
 
                     {/* Settings Sections */}
-                    <div className="px-8 space-y-6">
+                    <div className="px-4 md:px-8 space-y-6">
                         {/* Auto-Assignment */}
                         <AutoAssignmentCard
                             settings={settings.autoAssignment}
@@ -104,25 +105,26 @@ export default function SystemSettingsPage() {
                 </main>
 
                 {/* Sticky Footer */}
-                <div className="fixed bottom-0 right-0 left-[260px] bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between z-50">
-                    <div>
+                <div className="fixed bottom-0 right-0 left-0 lg:left-[260px] bg-white border-t border-gray-200 px-4 md:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50">
+                    <div className="order-2 sm:order-1">
                         {savedMessage && (
                             <p className="text-[13px] font-semibold text-primary-green animate-in fade-in">{savedMessage}</p>
                         )}
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto order-1 sm:order-2">
                         <Button
                             variant="outline"
                             onClick={handleReset}
-                            className="h-10 px-6 border-gray-300 text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 hover:border-gray-400 rounded-[2px] flex items-center gap-2"
+                            className="flex-1 sm:flex-none h-10 px-4 md:px-6 border-gray-300 text-[10px] md:text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 hover:border-gray-400 rounded-[2px] flex items-center justify-center gap-2"
                         >
                             <RotateCcw className="w-4 h-4" />
-                            Reset to Default
+                            <span className="hidden xs:inline">Reset</span>
+                            <span className="xs:hidden">Reset</span>
                         </Button>
                         <Button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="h-10 px-8 bg-primary-green hover:bg-[#15803D] text-[12px] font-bold uppercase tracking-widest rounded-[2px] shadow-lg shadow-primary-green/20 flex items-center gap-2"
+                            className="flex-1 sm:flex-none h-10 px-6 md:px-8 bg-primary-green hover:bg-[#15803D] text-[10px] md:text-[12px] font-bold uppercase tracking-widest rounded-[2px] shadow-lg shadow-primary-green/20 flex items-center justify-center gap-2"
                         >
                             <Save className="w-4 h-4" />
                             {isSaving ? "Saving..." : "Save Changes"}

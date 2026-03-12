@@ -59,9 +59,9 @@ export function AuditTable({
     return (
         <div className="space-y-4">
             {/* Search + Filter Bar */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
                 {/* Search */}
-                <div className="relative flex-1">
+                <div className="relative w-full md:flex-1">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
                         type="text"
@@ -72,38 +72,40 @@ export function AuditTable({
                     />
                 </div>
 
-                {/* Status Filter */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger className="h-10 px-5 border border-gray-300 rounded-[2px] text-[13px] font-semibold text-gray-600 flex items-center gap-2 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all outline-none cursor-pointer select-none min-w-[120px] justify-between">
-                        {statusFilter === "All" ? "All Status" : statusFilter}
-                        <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[150px]">
-                        {STATUS_OPTIONS.map((s) => (
-                            <DropdownMenuItem key={s} onClick={() => onStatusChange(s)}>
-                                {s === "All" ? "All Status" : s}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-3">
+                    {/* Status Filter */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="h-10 px-5 border border-gray-300 rounded-[2px] text-[13px] font-semibold text-gray-600 flex items-center gap-2 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all outline-none cursor-pointer select-none flex-1 md:min-w-[120px] justify-between">
+                            {statusFilter === "All" ? "All Status" : statusFilter}
+                            <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[150px]">
+                            {STATUS_OPTIONS.map((s) => (
+                                <DropdownMenuItem key={s} onClick={() => onStatusChange(s)}>
+                                    {s === "All" ? "All Status" : s}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
-                {/* Module Filter (More Filters) */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger className="h-10 px-5 border border-gray-300 rounded-[2px] text-[13px] font-semibold text-gray-500 flex items-center gap-2 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all outline-none cursor-pointer select-none min-w-[140px] justify-between">
-                        <div className="flex items-center gap-2">
-                            <SlidersHorizontal className="w-4 h-4 text-gray-400" />
-                            {moduleFilter === "All" ? "More Filters" : moduleFilter}
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[180px] max-h-[300px] overflow-y-auto">
-                        {MODULE_OPTIONS.map((m) => (
-                            <DropdownMenuItem key={m} onClick={() => onModuleChange(m)}>
-                                {m}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    {/* Module Filter (More Filters) */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="h-10 px-5 border border-gray-300 rounded-[2px] text-[13px] font-semibold text-gray-500 flex items-center gap-2 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all outline-none cursor-pointer select-none flex-1 md:min-w-[140px] justify-between">
+                            <div className="flex items-center gap-2">
+                                <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+                                {moduleFilter === "All" ? "More Filters" : moduleFilter}
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[180px] max-h-[300px] overflow-y-auto">
+                            {MODULE_OPTIONS.map((m) => (
+                                <DropdownMenuItem key={m} onClick={() => onModuleChange(m)}>
+                                    {m}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             {/* Table */}

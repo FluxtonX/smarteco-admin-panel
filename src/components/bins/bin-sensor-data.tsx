@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import {
     ResponsiveContainer,
@@ -41,6 +42,9 @@ const typeStats = [
 ];
 
 export function BinSensorData() {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Charts Row */}
@@ -49,46 +53,52 @@ export function BinSensorData() {
                 <Card className="p-6 border-gray-100 shadow-sm rounded-[8px] hover:shadow-md transition-shadow">
                     <h3 className="text-[15px] font-bold text-[#1A1A1A] mb-6">Fill Level Trends (24h)</h3>
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={trendData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
-                                <XAxis
-                                    dataKey="time"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                                    domain={[0, 100]}
-                                    ticks={[0, 25, 50, 75, 100]}
-                                />
-                                <Tooltip
-                                    cursor={{ stroke: '#15803D', strokeWidth: 1, strokeDasharray: '4 4' }}
-                                    contentStyle={{
-                                        backgroundColor: '#fff',
-                                        borderRadius: '8px',
-                                        border: '1px solid #E5E7EB',
-                                        padding: '12px',
-                                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                    }}
-                                    itemStyle={{ color: '#15803D', fontWeight: 'bold', fontSize: '12px' }}
-                                    labelStyle={{ color: '#6B7280', fontSize: '10px', marginBottom: '4px' }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="level"
-                                    stroke="#15803D"
-                                    strokeWidth={3}
-                                    dot={{ fill: '#15803D', r: 4, strokeWidth: 2, stroke: '#fff' }}
-                                    activeDot={{ r: 6, stroke: '#15803D', strokeWidth: 2, fill: '#fff' }}
-                                    animationDuration={1500}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        {mounted ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={trendData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+                                    <XAxis
+                                        dataKey="time"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        domain={[0, 100]}
+                                        ticks={[0, 25, 50, 75, 100]}
+                                    />
+                                    <Tooltip
+                                        cursor={{ stroke: '#15803D', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                        contentStyle={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '8px',
+                                            border: '1px solid #E5E7EB',
+                                            padding: '12px',
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                        }}
+                                        itemStyle={{ color: '#15803D', fontWeight: 'bold', fontSize: '12px' }}
+                                        labelStyle={{ color: '#6B7280', fontSize: '10px', marginBottom: '4px' }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="level"
+                                        stroke="#15803D"
+                                        strokeWidth={3}
+                                        dot={{ fill: '#15803D', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                                        activeDot={{ r: 6, stroke: '#15803D', strokeWidth: 2, fill: '#fff' }}
+                                        animationDuration={1500}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50/50 rounded-lg">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
+                            </div>
+                        )}
                     </div>
                 </Card>
 
@@ -96,46 +106,52 @@ export function BinSensorData() {
                 <Card className="p-6 border-gray-100 shadow-sm rounded-[8px] hover:shadow-md transition-shadow">
                     <h3 className="text-[15px] font-bold text-[#1A1A1A] mb-6">Bin Type Distribution</h3>
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={distributionData} margin={{ top: 5, right: 5, bottom: 5, left: -25 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fill: '#636E72' }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fill: '#636E72' }}
-                                    domain={[0, 6]}
-                                    ticks={[0, 1, 2, 3, 4, 5, 6]}
-                                />
-                                <Tooltip
-                                    cursor={{ fill: '#F9FAFB' }}
-                                    contentStyle={{
-                                        backgroundColor: '#fff',
-                                        borderRadius: '8px',
-                                        border: '1px solid #E5E7EB',
-                                        padding: '12px',
-                                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                    }}
-                                    itemStyle={{ color: '#166534', fontWeight: 'bold', fontSize: '12px' }}
-                                    labelStyle={{ color: '#6B7280', fontSize: '10px', marginBottom: '4px' }}
-                                />
-                                <Bar dataKey="count" radius={[4, 4, 0, 0]} animationDuration={1500}>
-                                    {distributionData.map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill="#166534"
-                                            className="hover:fill-[#15803D] transition-colors cursor-pointer"
-                                        />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {mounted ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={distributionData} margin={{ top: 5, right: 5, bottom: 5, left: -25 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#636E72' }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#636E72' }}
+                                        domain={[0, 6]}
+                                        ticks={[0, 1, 2, 3, 4, 5, 6]}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: '#F9FAFB' }}
+                                        contentStyle={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '8px',
+                                            border: '1px solid #E5E7EB',
+                                            padding: '12px',
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                        }}
+                                        itemStyle={{ color: '#166534', fontWeight: 'bold', fontSize: '12px' }}
+                                        labelStyle={{ color: '#6B7280', fontSize: '10px', marginBottom: '4px' }}
+                                    />
+                                    <Bar dataKey="count" radius={[4, 4, 0, 0]} animationDuration={1500}>
+                                        {distributionData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill="#166534"
+                                                className="hover:fill-[#15803D] transition-colors cursor-pointer"
+                                            />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50/50 rounded-lg">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
+                            </div>
+                        )}
                     </div>
                 </Card>
             </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card } from "@/components/ui/card";
 
@@ -12,35 +13,46 @@ const TIER_DATA = [
 ];
 
 export function TierDistribution() {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Left Card: Pie Chart */}
             <Card className="p-6 rounded-[4px] border border-gray-100 bg-white shadow-sm flex flex-col h-[350px]">
                 <h3 className="text-sm font-bold text-[#2D3436] mb-6">Tier Distribution</h3>
-                <div className="flex-1 w-full relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={TIER_DATA}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={true}
-                                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                                outerRadius={80}
-                                dataKey="value"
-                                stroke="none"
-                                className="text-[10px] font-semibold outline-none"
-                            >
-                                {TIER_DATA.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                contentStyle={{ borderRadius: '4px', border: '1px solid #f3f4f6', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', fontSize: '12px', fontWeight: 'bold' }}
-                                itemStyle={{ color: '#2D3436' }}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <div className="flex-1 w-full relative min-w-0">
+                    {mounted ? (
+                        <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                            <PieChart>
+                                <Pie
+                                    data={TIER_DATA}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={true}
+                                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                                    outerRadius={80}
+                                    dataKey="value"
+                                    stroke="none"
+                                    className="text-[10px] font-semibold outline-none"
+                                >
+                                    {TIER_DATA.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '4px', border: '1px solid #f3f4f6', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', fontSize: '12px', fontWeight: 'bold' }}
+                                    itemStyle={{ color: '#2D3436' }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50/50 rounded-lg">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
+                        </div>
+                    )}
                 </div>
                 {/* Horizontal Legend */}
                 <div className="flex justify-center items-center space-x-6 mt-4">
