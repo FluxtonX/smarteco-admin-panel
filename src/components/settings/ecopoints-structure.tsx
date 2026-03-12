@@ -43,27 +43,24 @@ export function EcoPointsCard({ structure, onChange }: EcoPointsCardProps) {
                 <h3 className="text-[16px] font-bold text-gray-700 tracking-tight leading-none">EcoPoints Structure</h3>
             </div>
 
-            {/* Waste Type Point Boxes — 2-column grid, each cell is a full bordered box */}
-            <div className="space-y-3">
-                {WASTE_GRID.map((row, ri) => (
-                    <div key={ri} className="grid grid-cols-2 gap-3">
-                        {row.map(({ key, label }) => (
-                            <div
-                                key={key}
-                                className="flex items-center justify-between border border-gray-200 rounded-[2px] px-5 py-3 bg-white"
-                            >
-                                <span className="text-[13px] font-medium text-gray-600">{label}</span>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    value={wastePoints[key]}
-                                    onChange={(e) => updatePoints(key, e.target.value)}
-                                    className="w-16 h-8 border border-gray-300 rounded-[2px] px-2 text-[13px] font-semibold text-gray-700 text-right outline-none hover:border-gray-400 focus:border-primary-green transition-all bg-white"
-                                />
-                            </div>
-                        ))}
-                        {/* empty cell if row has only 1 item */}
-                        {row.length === 1 && <div />}
+            {/* Responsive Waste Type Point Boxes — 1-column mobile, 2-column desktop */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
+                {WASTE_GRID.flat().map(({ key, label }) => (
+                    <div
+                        key={key}
+                        className="flex items-center justify-between border border-gray-200 rounded-[2px] px-5 py-3 bg-white hover:border-gray-300 transition-colors shadow-sm"
+                    >
+                        <span className="text-[13px] font-bold text-gray-700">{label}</span>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                min={0}
+                                value={wastePoints[key]}
+                                onChange={(e) => updatePoints(key, e.target.value)}
+                                className="w-16 h-8 border border-gray-200 rounded-[4px] px-2 text-[14px] font-bold text-gray-800 text-right outline-none hover:border-gray-400 focus:border-primary-green transition-all bg-gray-50/30"
+                            />
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">pts</span>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -77,11 +74,11 @@ export function EcoPointsCard({ structure, onChange }: EcoPointsCardProps) {
                 {tierMultipliers.map((tm) => (
                     <div
                         key={tm.tier}
-                        className="flex items-center justify-between border border-gray-200 rounded-[2px] px-5 py-3 bg-white"
+                        className="flex items-center justify-between border border-gray-200 rounded-[2px] px-5 py-3 bg-white hover:border-gray-300 transition-colors shadow-sm"
                     >
-                        <span className="text-[13px] font-medium text-gray-600">{tm.label}</span>
-                        <div className="min-w-[64px] h-8 border border-gray-300 rounded-[2px] px-3 flex items-center justify-end bg-white">
-                            <span className="text-[13px] font-bold text-gray-700">{tm.multiplier.toFixed(1)}x</span>
+                        <span className="text-[13px] font-bold text-gray-700">{tm.label}</span>
+                        <div className="min-w-[70px] h-9 border border-gray-200 rounded-[4px] px-3 flex items-center justify-center bg-green-50/50">
+                            <span className="text-[14px] font-black text-primary-green">{tm.multiplier.toFixed(1)}x</span>
                         </div>
                     </div>
                 ))}

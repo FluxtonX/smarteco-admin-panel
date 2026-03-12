@@ -20,7 +20,7 @@ export function ReferralCharts({ data }: { data: ReferralPerformanceData[] }) {
                         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis
-                                dataKey="month"
+                                dataKey="week"
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
@@ -35,7 +35,7 @@ export function ReferralCharts({ data }: { data: ReferralPerformanceData[] }) {
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                             />
                             <Bar
-                                dataKey="count"
+                                dataKey="referrals"
                                 fill="#22C55E"
                                 radius={[4, 4, 0, 0]}
                                 barSize={40}

@@ -72,7 +72,7 @@ export default function UsersPage() {
                         </div>
                     </div>
                     {/* User Summary Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                         <UserSummaryCard title="Total Users" count={5} subtext="Manage 5 registered users" icon={Users} />
                         <UserSummaryCard title="Residential Users" count={3} subtext="Private households" icon={Home} />
                         <UserSummaryCard title="Business Accounts" count={2} subtext="Commercial entities" icon={Building2} />
@@ -80,7 +80,7 @@ export default function UsersPage() {
                     </div>
 
                     {/* Tabs / Filters Section - Responsive Horizontal Scroll */}
-                    <div className="pt-2 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto scrollbar-hide">
+                    <div className="pt-2 overflow-x-auto scrollbar-hide">
                         <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-full">
                             <TabsList className="bg-transparent border-none p-0 h-auto flex whitespace-nowrap gap-3 min-w-max pb-2">
                                 <TabsTrigger value="all" className="text-[10px] md:text-[11px] font-bold uppercase px-4 md:px-5 py-2.5 rounded-[4px] border border-gray-200 bg-white data-active:bg-primary-green data-active:text-white data-active:border-primary-green hover:bg-green-50 hover:text-primary-green transition-all shadow-sm flex items-center space-x-2">

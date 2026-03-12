@@ -40,7 +40,7 @@ const STAT_CARDS = [
 
 export function AdminStatsGrid({ stats }: AdminStatsProps) {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {STAT_CARDS.map(({ key, label, icon: Icon, iconBg, iconColor }) => (
                 <div
                     key={key}

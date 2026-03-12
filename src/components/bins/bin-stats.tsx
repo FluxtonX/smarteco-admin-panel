@@ -67,7 +67,7 @@ export function BinStats({ stats }: { stats: BinStatsData | null }) {
     return (
         <div className="space-y-4">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 {items.map((item, index) => (
                     <StatCard key={index} {...item} />
                 ))}

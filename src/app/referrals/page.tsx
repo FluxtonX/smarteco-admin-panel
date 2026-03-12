@@ -56,7 +56,7 @@ export default function ReferralsPage() {
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 animate-in fade-in duration-700">
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex flex-row items-start justify-between gap-4">
                         <div className="space-y-1">
                             <h1 className="text-2xl md:text-[28px] font-bold text-[#1A1A1A] tracking-tight">
                                 Referral System
@@ -77,7 +77,7 @@ export default function ReferralsPage() {
                     <ReferralPerformanceChart data={performance} />
 
                     {/* Referrals Table Section */}
-                    <div className="-mx-4 md:mx-0 overflow-x-auto">
+                    <div className="overflow-x-auto">
                         <ReferralTable referrals={referrals} />
                     </div>
                 </main>

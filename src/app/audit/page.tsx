@@ -62,7 +62,7 @@ export default function AuditLogsPage() {
                         <AuditStatsGrid stats={stats} />
 
                         {/* Table + Filters */}
-                        <div className="-mx-4 md:mx-0 overflow-x-auto">
+                        <div className="overflow-x-auto">
                             <AuditTable
                                 logs={filteredLogs}
                                 search={search}

@@ -84,7 +84,7 @@ export default function SmartBinManagementPage() {
                     </div>
 
                     {/* Tab Navigation - Scrollable on mobile */}
-                    <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto scrollbar-hide">
+                    <div className="overflow-x-auto scrollbar-hide">
                         <div className="bg-white p-1 rounded-[8px] border border-gray-100 shadow-sm inline-flex items-center space-x-1 min-w-max">
                             {tabs.map((tab) => (
                                 <button
@@ -128,7 +128,7 @@ export default function SmartBinManagementPage() {
                             {/* Attention Section */}
                             <div className="space-y-4">
                                 <h2 className="text-base font-bold text-[#1A1A1A] tracking-tight">Bins Requiring Attention</h2>
-                                <div className="-mx-4 md:mx-0 overflow-x-auto">
+                                <div className="overflow-x-auto">
                                     <BinTable
                                         bins={binsRequiringAttention}
                                         isLoading={isLoading}
@@ -164,7 +164,7 @@ export default function SmartBinManagementPage() {
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="-mx-4 md:mx-0 overflow-x-auto">
+                                <div className="overflow-x-auto">
                                     <BinTable
                                         bins={filteredBinsBySearch}
                                         isLoading={isLoading}

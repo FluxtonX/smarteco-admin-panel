@@ -40,7 +40,7 @@ export function AuditStatsGrid({ stats }: AuditStatsProps) {
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {cards.map(({ label, value, icon: Icon, iconBg, iconColor }) => (
                 <div
                     key={label}
