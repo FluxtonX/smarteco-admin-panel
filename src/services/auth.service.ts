@@ -1,7 +1,6 @@
-/**
- * Mock Service for Authentication
- * In a real app, these would be replaced with fetch() calls to your backend.
- */
+"use client";
+
+import { apiPost } from "@/lib/api-client";
 
 export interface User {
     id: string;
@@ -10,26 +9,64 @@ export interface User {
     role: string;
 }
 
-export const authService = {
-    async login(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+interface SendOtpResponse {
+    success: boolean;
+    message: string;
+    data: {
+        expiresIn: number;
+        isNewUser: boolean;
+    };
+}
 
-        if (email === "admin@smarteco.rw" && password === "admin123") {
-            return {
-                success: true,
-                user: { id: "1", email: "admin@smarteco.rw", name: "John Mugisha", role: "Super Admin" }
-            };
-        }
-        return { success: false, error: "Invalid credentials" };
+interface VerifyOtpResponse {
+    success: boolean;
+    message: string;
+    data: {
+        accessToken: string;
+        refreshToken: string;
+        expiresIn: number;
+        user: any;
+    };
+}
+
+interface GenericResponse {
+    success: boolean;
+    message?: string;
+}
+
+export const authService = {
+    /**
+     * POST /api/v1/auth/otp/send
+     * Triggers the backend OTP delivery logic
+     */
+    async sendOtp(phone: string): Promise<SendOtpResponse> {
+        return apiPost<SendOtpResponse>('/auth/otp/send', { phone });
     },
 
-    async verify2FA(code: string): Promise<{ success: boolean; error?: string }> {
-        await new Promise(resolve => setTimeout(resolve, 800));
+    /**
+     * POST /api/v1/auth/otp/verify
+     * Verifies the OTP, returning JWT access token
+     */
+    async verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse> {
+        return apiPost<VerifyOtpResponse>('/auth/otp/verify', { phone, otp });
+    },
 
-        if (code === "123456") {
-            return { success: true };
+    /**
+     * POST /api/v1/auth/refresh
+     */
+    async refreshToken(refreshToken: string): Promise<{ success: boolean; data: { accessToken: string } }> {
+        return apiPost('/auth/refresh', { refreshToken });
+    },
+
+    /**
+     * POST /api/v1/auth/logout
+     */
+    async logout(): Promise<GenericResponse> {
+        const response = await apiPost<GenericResponse>('/auth/logout', {});
+        // Also cleanup local storage upon successfully pinging server
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('smarteco_token');
         }
-        return { success: false, error: "Invalid 2FA code" };
+        return response;
     }
 };

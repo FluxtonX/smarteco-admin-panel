@@ -1,36 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { ShieldAlert, ShieldCheck, ArrowLeft, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { authService } from "@/services/auth.service";
 
-export default function TwoFactorPage() {
+function TwoFactorContent() {
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const [isVerifying, setIsVerifying] = useState(false);
+    const [otpError, setOtpError] = useState("");
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const phone = searchParams.get('phone') || "+250788123456";
 
-    const handleVerify = (enteredCode: string, e?: React.FormEvent) => {
+    const handleVerify = async (enteredCode: string, e?: React.FormEvent) => {
         if (e) e.preventDefault();
         setIsVerifying(true);
+        setOtpError("");
 
-        // Simulate a brief "active" verification state
-        setTimeout(() => {
-            if (enteredCode === "123456") {
+        try {
+            const res = await authService.verifyOtp(phone, enteredCode);
+            if (res.success && res.data.accessToken) {
+                localStorage.setItem('smarteco_token', res.data.accessToken);
                 router.push("/dashboard");
             } else {
-                router.push("/expired");
+                setOtpError("Invalid verification code. Please try again.");
+                setCode(["", "", "", "", "", ""]);
             }
-        }, 800);
+        } catch (error) {
+            setOtpError("Invalid verification code. Please try again.");
+            setCode(["", "", "", "", "", ""]);
+        } finally {
+            setIsVerifying(false);
+        }
     };
 
     const handlePaste = (e: React.ClipboardEvent) => {
         const pastedData = e.clipboardData.getData("text").slice(0, 6);
         if (!/^\d+$/.test(pastedData)) return;
+
+        if (otpError) setOtpError("");
 
         const newCode = [...code];
         pastedData.split("").forEach((char, index) => {
@@ -38,11 +52,9 @@ export default function TwoFactorPage() {
         });
         setCode(newCode);
 
-        // If full code is pasted, verify immediately
         if (pastedData.length === 6) {
             handleVerify(pastedData);
         } else {
-            // Focus the next empty input
             const nextEmptyIndex = pastedData.length;
             if (nextEmptyIndex < 6) {
                 document.getElementById(`code-${nextEmptyIndex}`)?.focus();
@@ -51,24 +63,22 @@ export default function TwoFactorPage() {
     };
 
     const handleInputChange = (index: number, value: string) => {
-        // Handle case where user might type multiple characters (though maxLength is 1)
         const char = value.slice(-1);
         if (!/^\d?$/.test(char)) return;
+
+        if (otpError) setOtpError("");
 
         const newCode = [...code];
         newCode[index] = char;
         setCode(newCode);
 
-        // Auto-focus next input
         if (char && index < 5) {
             const nextInput = document.getElementById(`code-${index + 1}`);
             nextInput?.focus();
         }
 
-        // Auto-verify when all digits are entered
         const fullCode = newCode.join("");
         if (fullCode.length === 6) {
-            // Give a tiny delay for visual feedback of the last digit
             setTimeout(() => handleVerify(fullCode), 100);
         }
     };
@@ -76,7 +86,6 @@ export default function TwoFactorPage() {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 font-sans">
             <div className="w-full max-w-[448px] space-y-6">
-                {/* Logo Section */}
                 <div className="flex flex-col items-center space-y-4">
                     <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#1E8449] to-[#145A32] flex items-center justify-center shadow-lg">
                         <ShieldCheck className="w-10 h-10 text-white" />
@@ -98,6 +107,11 @@ export default function TwoFactorPage() {
                     </CardHeader>
 
                     <CardContent className="px-8 pb-4 space-y-6">
+                        {otpError && (
+                            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-md text-sm border border-red-100 font-semibold text-center">
+                                {otpError}
+                            </div>
+                        )}
                         <div className="flex justify-between gap-2 py-4">
                             {code.map((digit, idx) => (
                                 <Input
@@ -151,7 +165,6 @@ export default function TwoFactorPage() {
                     </CardContent>
 
                     <CardFooter className="px-8 pb-8 pt-0 flex flex-col items-stretch space-y-4">
-                        {/* Demo Code Box */}
                         <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-4 space-y-2">
                             <div className="flex items-center text-blue-700 text-xs font-bold uppercase tracking-wider">
                                 <ShieldCheck className="w-3 h-3 mr-1.5" />
@@ -164,7 +177,6 @@ export default function TwoFactorPage() {
                     </CardFooter>
                 </Card>
 
-                {/* Back Link */}
                 <div className="text-center">
                     <Link href="/login" className="inline-flex items-center text-sm font-bold text-gray-400 hover:text-gray-600">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
@@ -173,5 +185,13 @@ export default function TwoFactorPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function TwoFactorPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading Secure Portal...</div>}>
+            <TwoFactorContent />
+        </Suspense>
     );
 }

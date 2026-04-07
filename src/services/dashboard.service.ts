@@ -1,6 +1,4 @@
-/**
- * Mock Service for Dashboard Data
- */
+import { apiGet } from "@/lib/api-client";
 
 export interface Stat {
     title: string;
@@ -18,21 +16,49 @@ export interface Activity {
 
 export const dashboardService = {
     async getStats(): Promise<Stat[]> {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return [
-            { title: "Total Users", value: "4,041", change: "+12% from last week", trend: "up" },
-            { title: "Active Pickups Today", value: "234", change: "+8% from yesterday", trend: "up" },
-            { title: "Revenue (This Month)", value: "12.4M RWF", change: "+18% growth", trend: "up" },
-            { title: "Total Waste Collected", value: "8,520 kg", change: "", subtext: "This week", trend: "up" },
-        ];
+        const response = await apiGet<{ success: boolean; data: any }>("/admin/dashboard");
+        if (response.success && response.data) {
+            const data = response.data;
+            return [
+                { 
+                    title: "Total Users", 
+                    value: (data.totalUsers || 0).toLocaleString(), 
+                    change: `${data.usersGrowth || 0}% from last week`, 
+                    trend: (data.usersGrowth || 0) >= 0 ? "up" : "down" 
+                },
+                { 
+                    title: "Active Pickups", 
+                    value: (data.activePickups || 0).toLocaleString(), 
+                    change: `${data.pickupsGrowth || 0}% from yesterday`, 
+                    trend: (data.pickupsGrowth || 0) >= 0 ? "up" : "down" 
+                },
+                { 
+                    title: "Revenue (Month)", 
+                    value: `${(data.totalRevenue || 0).toLocaleString()} RWF`, 
+                    change: `${data.revenueGrowth || 0}% growth`, 
+                    trend: (data.revenueGrowth || 0) >= 0 ? "up" : "down" 
+                },
+                { 
+                    title: "Waste Collected", 
+                    value: `${(data.totalWasteKg || 0).toLocaleString()} kg`, 
+                    subtext: "This week", 
+                    change: "", 
+                    trend: "up" 
+                },
+            ];
+        }
+        return [];
     },
 
     async getRecentActivity(): Promise<Activity[]> {
-        await new Promise(resolve => setTimeout(resolve, 600));
-        return [
-            { user: "Jean Pierre", action: "New user registered", time: "2 mins ago" },
-            { user: "Marie Uwase", action: "Pickup completed • Organic waste", time: "5 mins ago" },
-            { user: "Bin #KGL-234", action: "Smart bin is full • Needs pickup", time: "8 mins ago" },
-        ];
+        const response = await apiGet<{ success: boolean; data: any[] }>("/notifications"); // Using notifications as logic for activity
+        if (response.success && response.data) {
+            return response.data.slice(0, 5).map(n => ({
+                user: n.title || "System",
+                action: n.message,
+                time: "Recently"
+            }));
+        }
+        return [];
     }
 };

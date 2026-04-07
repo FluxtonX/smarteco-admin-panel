@@ -8,6 +8,7 @@ import { TimeSlotCard } from "@/components/settings/time-slot-config";
 import { EcoPointsCard } from "@/components/settings/ecopoints-structure";
 import { ServiceFeesCard } from "@/components/settings/service-fees";
 import { NotificationTemplatesCard } from "@/components/settings/notification-templates";
+import { CommunicationDebugCard } from "@/components/settings/communication-debug";
 import { Button } from "@/components/ui/button";
 import { settingsService, SystemSettings } from "@/services/settings.service";
 import { RotateCcw, Save } from "lucide-react";
@@ -44,18 +45,6 @@ export default function SystemSettingsPage() {
         setTimeout(() => setSavedMessage(""), 3000);
     };
 
-    if (isLoading || !settings) {
-        return (
-            <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
-                <Sidebar />
-                <div className="flex-1 flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 border-4 border-primary-green border-t-transparent rounded-full animate-spin" />
-                    <span className="mt-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">Loading Settings...</span>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -73,64 +62,78 @@ export default function SystemSettingsPage() {
 
                     {/* Settings Sections */}
                     <div className="px-4 md:px-8 space-y-6">
-                        {/* Auto-Assignment */}
-                        <AutoAssignmentCard
-                            settings={settings.autoAssignment}
-                            onChange={(v) => setSettings({ ...settings, autoAssignment: v })}
-                        />
+                        {(isLoading || !settings) ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <div className="w-12 h-12 border-4 border-primary-green border-t-transparent rounded-full animate-spin" />
+                                <span className="mt-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">Loading Settings...</span>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Auto-Assignment */}
+                                <AutoAssignmentCard
+                                    settings={settings.autoAssignment}
+                                    onChange={(v) => setSettings({ ...settings, autoAssignment: v })}
+                                />
 
-                        {/* Time Slots */}
-                        <TimeSlotCard
-                            config={settings.timeSlots}
-                            onChange={(v) => setSettings({ ...settings, timeSlots: v })}
-                        />
+                                {/* Time Slots */}
+                                <TimeSlotCard
+                                    config={settings.timeSlots}
+                                    onChange={(v) => setSettings({ ...settings, timeSlots: v })}
+                                />
 
-                        {/* EcoPoints */}
-                        <EcoPointsCard
-                            structure={settings.ecoPoints}
-                            onChange={(v) => setSettings({ ...settings, ecoPoints: v })}
-                        />
+                                {/* EcoPoints */}
+                                <EcoPointsCard
+                                    structure={settings.ecoPoints}
+                                    onChange={(v) => setSettings({ ...settings, ecoPoints: v })}
+                                />
 
-                        {/* Service Fees */}
-                        <ServiceFeesCard
-                            fees={settings.serviceFees}
-                            onChange={(v) => setSettings({ ...settings, serviceFees: v })}
-                        />
+                                {/* Service Fees */}
+                                <ServiceFeesCard
+                                    fees={settings.serviceFees}
+                                    onChange={(v) => setSettings({ ...settings, serviceFees: v })}
+                                />
 
-                        {/* Notification Templates */}
-                        <NotificationTemplatesCard
-                            templates={settings.notificationTemplates}
-                        />
+                                {/* Notification Templates */}
+                                <NotificationTemplatesCard
+                                    templates={settings.notificationTemplates}
+                                />
+
+                                {/* Communication Debug */}
+                                <CommunicationDebugCard />
+                            </>
+                        )}
                     </div>
                 </main>
 
                 {/* Sticky Footer */}
-                <div className="fixed bottom-0 right-0 left-0 lg:left-[260px] bg-white border-t border-gray-200 px-4 md:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50">
-                    <div className="order-2 sm:order-1">
-                        {savedMessage && (
-                            <p className="text-[13px] font-semibold text-primary-green animate-in fade-in">{savedMessage}</p>
-                        )}
+                {(!isLoading && settings) && (
+                    <div className="fixed bottom-0 right-0 left-0 lg:left-[260px] bg-white border-t border-gray-200 px-4 md:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50">
+                        <div className="order-2 sm:order-1">
+                            {savedMessage && (
+                                <p className="text-[13px] font-semibold text-primary-green animate-in fade-in">{savedMessage}</p>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto order-1 sm:order-2">
+                            <Button
+                                variant="outline"
+                                onClick={handleReset}
+                                className="flex-1 sm:flex-none h-10 px-4 md:px-6 border-gray-300 text-[10px] md:text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 hover:border-gray-400 rounded-[2px] flex items-center justify-center gap-2"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                                <span className="hidden xs:inline">Reset</span>
+                                <span className="xs:hidden">Reset</span>
+                            </Button>
+                            <Button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="flex-1 sm:flex-none h-10 px-6 md:px-8 bg-primary-green hover:bg-[#15803D] text-[10px] md:text-[12px] font-bold uppercase tracking-widest rounded-[2px] shadow-lg shadow-primary-green/20 flex items-center justify-center gap-2"
+                            >
+                                <Save className="w-4 h-4" />
+                                {isSaving ? "Saving..." : "Save Changes"}
+                            </Button>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto order-1 sm:order-2">
-                        <Button
-                            variant="outline"
-                            onClick={handleReset}
-                            className="flex-1 sm:flex-none h-10 px-4 md:px-6 border-gray-300 text-[10px] md:text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 hover:border-gray-400 rounded-[2px] flex items-center justify-center gap-2"
-                        >
-                            <RotateCcw className="w-4 h-4" />
-                            <span className="hidden xs:inline">Reset</span>
-                            <span className="xs:hidden">Reset</span>
-                        </Button>
-                        <Button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="flex-1 sm:flex-none h-10 px-6 md:px-8 bg-primary-green hover:bg-[#15803D] text-[10px] md:text-[12px] font-bold uppercase tracking-widest rounded-[2px] shadow-lg shadow-primary-green/20 flex items-center justify-center gap-2"
-                        >
-                            <Save className="w-4 h-4" />
-                            {isSaving ? "Saving..." : "Save Changes"}
-                        </Button>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );

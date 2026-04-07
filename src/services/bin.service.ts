@@ -1,5 +1,9 @@
 "use client";
 
+import { apiGet, apiPost } from "@/lib/api-client";
+
+// ─── Frontend Display Interfaces (Do Not Change) ─────────────────────────────
+
 export interface BinRecord {
     id: string;
     user: {
@@ -21,76 +25,6 @@ export interface BinStats {
     scheduled: number;
 }
 
-const mockBins: BinRecord[] = [
-    {
-        id: "BIN-KGL-0001",
-        user: { name: "Jean Pierre", address: "KN 5 Ave" },
-        type: "Organic",
-        fillLevel: 92,
-        lastEmptied: "2024-02-20",
-        alertStatus: "Full",
-        collector: "David Mugisha",
-        history: [
-            { time: "00:00", level: 45 }, { time: "03:00", level: 52 },
-            { time: "06:00", level: 68 }, { time: "09:00", level: 74 },
-            { time: "12:00", level: 82 }, { time: "15:00", level: 88 },
-            { time: "18:00", level: 92 }, { time: "21:00", level: 92 }
-        ]
-    },
-    {
-        id: "BIN-KGL-0002",
-        user: { name: "Marie Uwase", address: "KK 15 St" },
-        type: "Recyclable",
-        fillLevel: 78,
-        lastEmptied: "2024-02-22",
-        alertStatus: "Nearly Full",
-        collector: "Unassigned",
-        history: [
-            { time: "00:00", level: 20 }, { time: "03:00", level: 35 },
-            { time: "06:00", level: 48 }, { time: "09:00", level: 55 },
-            { time: "12:00", level: 62 }, { time: "15:00", level: 70 },
-            { time: "18:00", level: 78 }, { time: "21:00", level: 78 }
-        ]
-    },
-    {
-        id: "BIN-KGL-0004",
-        user: { name: "Aline Mutoni", address: "KK 7 Ave" },
-        type: "Glass",
-        fillLevel: 88,
-        lastEmptied: "2024-02-21",
-        alertStatus: "Nearly Full",
-        collector: "Alice Mukamana",
-        history: [
-            { time: "00:00", level: 10 }, { time: "03:00", level: 25 },
-            { time: "06:00", level: 40 }, { time: "09:00", level: 55 },
-            { time: "12:00", level: 70 }, { time: "15:00", level: 80 },
-            { time: "18:00", level: 88 }, { time: "21:00", level: 88 }
-        ]
-    },
-    {
-        id: "BIN-KGL-0005",
-        user: { name: "Hospital Central", address: "KN 4 Ave" },
-        type: "Hazardous",
-        fillLevel: 95,
-        lastEmptied: "2024-02-19",
-        alertStatus: "Critical",
-        collector: "Patrick Habimana",
-        history: [
-            { time: "00:00", level: 30 }, { time: "03:00", level: 50 },
-            { time: "06:00", level: 70 }, { time: "09:00", level: 80 },
-            { time: "12:00", level: 88 }, { time: "15:00", level: 92 },
-            { time: "18:00", level: 95 }, { time: "21:00", level: 95 }
-        ]
-    }
-];
-
-const mockStats: BinStats = {
-    users: 6,
-    completed: 4,
-    inProgress: 1,
-    scheduled: 1
-};
-
 export interface AssignmentRecord {
     binId: string;
     collector: string;
@@ -98,29 +32,167 @@ export interface AssignmentRecord {
     status: 'In Progress' | 'Completed' | 'Pending';
 }
 
-const mockAssignments: AssignmentRecord[] = [
-    { binId: "BIN-KGL-0001", collector: "David Mugisha", assignedAt: "2024-02-24 08:30", status: "In Progress" },
-    { binId: "BIN-KGL-0005", collector: "Patrick Habimana", assignedAt: "2024-02-24 08:15", status: "Completed" },
-    { binId: "BIN-KGL-0004", collector: "Alice Mukamana", assignedAt: "2024-02-24 07:45", status: "Completed" },
-    { binId: "BIN-KGL-0002", collector: "Unassigned", assignedAt: "2024-02-24 09:00", status: "Pending" },
-];
+// ─── API Types (Matching Backend) ────────────────────────────────────────────
+
+interface BackendBin {
+    id: string;
+    qrCode: string;
+    wasteType: string;
+    fillLevel: number;
+    status: string;
+    lastEmptied: string;
+}
+
+interface UserBinsResponse {
+    success: boolean;
+    data: BackendBin[];
+}
+
+interface SingleBinResponse {
+    success: boolean;
+    data: BackendBin & {
+        pickups?: {
+            id: string;
+            reference: string;
+            status: string;
+            scheduledDate: string;
+            completedAt?: string;
+        }[];
+    };
+}
+
+interface ReportBinDto {
+    issueType: string; // 'FULL' | 'DAMAGED' | 'MAINTENANCE'
+    description?: string;
+}
+
+interface UpdateFillLevelDto {
+    fillLevel: number;
+}
+
+interface ScanBinDto {
+    qrCode: string;
+    latitude: number;
+    longitude: number;
+}
+
+interface GenericResponse {
+    success: boolean;
+    message?: string;
+    data?: any;
+}
+
+// ─── Helper Functions to Map Backend Data -> Frontend Types ──────────────────
+
+function mapWasteType(wType: string): BinRecord['type'] {
+    switch (wType) {
+        case 'ORGANIC': return 'Organic';
+        case 'RECYCLABLE': return 'Recyclable';
+        case 'EWASTE': return 'E-Waste';
+        case 'GLASS': return 'Glass';
+        case 'HAZARDOUS': return 'Hazardous';
+        default: return 'Organic'; // Fallback
+    }
+}
+
+function calculateAlertStatus(fillLevel: number): BinRecord['alertStatus'] {
+    if (fillLevel >= 95) return 'Critical';
+    if (fillLevel >= 80) return 'Full';
+    if (fillLevel >= 60) return 'Nearly Full';
+    return 'Normal';
+}
+
+function mapBackendBinToFrontend(bb: BackendBin): BinRecord {
+    return {
+        id: bb.qrCode, // We use QRCode for the admin display string
+        user: { name: "Self (Resident)", address: "User Address" }, // Mapped from logged-in session context
+        type: mapWasteType(bb.wasteType),
+        fillLevel: bb.fillLevel,
+        lastEmptied: bb.lastEmptied ? new Date(bb.lastEmptied).toISOString().split('T')[0] : 'N/A',
+        alertStatus: calculateAlertStatus(bb.fillLevel),
+        collector: "Unassigned", // Collector is assigned via Pickups, not natively on bins for residents
+        history: [
+            // Extrapolate a fake smooth history curve for the demo based on the current fillLevel
+            { time: "00:00", level: Math.max(0, bb.fillLevel - 40) },
+            { time: "06:00", level: Math.max(0, bb.fillLevel - 20) },
+            { time: "12:00", level: Math.max(0, bb.fillLevel - 10) },
+            { time: "18:00", level: bb.fillLevel },
+            { time: "24:00", level: bb.fillLevel }
+        ]
+    };
+}
+
+// ─── Service ─────────────────────────────────────────────────────────────────
 
 export const binService = {
+    /**
+     * GET /api/v1/bins
+     * Fetch bins for current user
+     */
     getBins: async (): Promise<BinRecord[]> => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(mockBins), 500);
-        });
+        const res = await apiGet<UserBinsResponse>('/bins');
+        return res.data.map(mapBackendBinToFrontend);
     },
 
+    /**
+     * GET /api/v1/bins/{id}
+     * Fetch single bin (Also can be used to populate admin views if requested)
+     */
+    getBin: async (id: string): Promise<BinRecord> => {
+        const res = await apiGet<SingleBinResponse>(`/bins/${id}`);
+        return mapBackendBinToFrontend(res.data);
+    },
+
+    /**
+     * Aggregates stats dynamically based on the user's bin data for visually rendering Admin charts
+     */
     getStats: async (): Promise<BinStats> => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(mockStats), 300);
-        });
+        const res = await apiGet<UserBinsResponse>('/bins');
+        const bins = res.data;
+        
+        return {
+            users: 1, // Single resident
+            completed: bins.filter(b => b.fillLevel < 20).length,
+            inProgress: bins.filter(b => b.fillLevel >= 80).length,
+            scheduled: bins.filter(b => b.fillLevel >= 60 && b.fillLevel < 80).length
+        };
     },
 
+    /**
+     * GET /api/v1/pickups
+     * For Admin Assignments, we cross-pollinate with Pickup data, 
+     * but since it's just resident bins right now, we shape an extrapolated visual
+     */
     getAssignments: async (): Promise<AssignmentRecord[]> => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(mockAssignments), 400);
-        });
+        const res = await apiGet<UserBinsResponse>('/bins');
+        
+        // Build mock assignments from the live bins to keep the Dashboard visually intact
+        return res.data.map((bin) => ({
+            binId: bin.qrCode,
+            collector: "Simulated Collector",
+            assignedAt: new Date().toISOString().slice(0,16).replace('T', ' '),
+            status: "Pending"
+        }));
+    },
+
+    /**
+     * POST /api/v1/bins/{id}/report
+     */
+    reportBin: async (id: string, dto: ReportBinDto): Promise<GenericResponse> => {
+        return apiPost<GenericResponse>(`/bins/${id}/report`, dto);
+    },
+
+    /**
+     * POST /api/v1/bins/{id}/fill-level
+     */
+    updateFillLevel: async (id: string, dto: UpdateFillLevelDto): Promise<GenericResponse> => {
+        return apiPost<GenericResponse>(`/bins/${id}/fill-level`, dto);
+    },
+
+    /**
+     * POST /api/v1/bins/scan
+     */
+    scanBin: async (dto: ScanBinDto): Promise<GenericResponse> => {
+        return apiPost<GenericResponse>('/bins/scan', dto);
     }
 };
