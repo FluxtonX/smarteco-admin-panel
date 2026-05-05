@@ -16,7 +16,8 @@ interface AutoAssignmentProps {
 }
 
 export function AutoAssignmentCard({ settings, onChange }: AutoAssignmentProps) {
-    const methods = ["Nearest Collector", "Zone-Based", "Priority Queue"] as const;
+    // Backend is manual assignment only (admin assigns pickups explicitly)
+    const methods = ["Manual (Admin Only)"] as const;
 
     return (
         <Card className="p-8 border-gray-200 bg-white shadow-sm rounded-[4px] space-y-6">
@@ -27,18 +28,21 @@ export function AutoAssignmentCard({ settings, onChange }: AutoAssignmentProps) 
                 </div>
                 <h3 className="text-[16px] font-bold text-gray-700 tracking-tight leading-none">Auto-Assignment Logic</h3>
             </div>
+            <p className="text-[12px] text-gray-500 font-medium">
+                Manual assignment only: pickups are assigned to collectors by admins (no auto-assignment).
+            </p>
 
             {/* Assignment Method */}
             <div className="space-y-2.5">
                 <label className="text-[12px] font-semibold text-gray-500 block">Assignment Method</label>
                 <DropdownMenu>
                     <DropdownMenuTrigger className="w-full h-10 border border-gray-300 rounded-[2px] px-4 flex items-center justify-between text-[13px] font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all outline-none bg-white cursor-pointer select-none">
-                        <span>{settings.method}</span>
+                        <span>Manual (Admin Only)</span>
                         <ChevronDown className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-[400px]">
                         {methods.map((m) => (
-                            <DropdownMenuItem key={m} onClick={() => onChange({ ...settings, method: m })}>{m}</DropdownMenuItem>
+                            <DropdownMenuItem key={m} disabled>{m}</DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -52,13 +56,11 @@ export function AutoAssignmentCard({ settings, onChange }: AutoAssignmentProps) 
                 </div>
                 {/* Custom Toggle */}
                 <button
-                    onClick={() => onChange({ ...settings, enabled: !settings.enabled })}
-                    className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${settings.enabled ? "bg-primary-green" : "bg-gray-200"
-                        }`}
+                    disabled
+                    className="relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none bg-gray-200 opacity-60 cursor-not-allowed"
                 >
                     <span
-                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${settings.enabled ? "translate-x-6" : "translate-x-0"
-                            }`}
+                        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 translate-x-0"
                     />
                 </button>
             </div>

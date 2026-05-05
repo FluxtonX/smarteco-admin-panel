@@ -52,6 +52,14 @@ export const authService = {
     },
 
     /**
+     * POST /api/v1/auth/admin/login
+     * Login directly with hardcoded email and password
+     */
+    async adminLogin(email: string, password: string): Promise<VerifyOtpResponse> {
+        return apiPost<VerifyOtpResponse>('/auth/admin/login', { email, password });
+    },
+
+    /**
      * POST /api/v1/auth/refresh
      */
     async refreshToken(refreshToken: string): Promise<{ success: boolean; data: { accessToken: string } }> {

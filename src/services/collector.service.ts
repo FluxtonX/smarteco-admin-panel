@@ -10,6 +10,17 @@ export interface CollectorRecord {
     rating: number;
     totalPickups: number;
     performance: number;
+    userType?: string;
+    isVerified?: boolean;
+}
+
+export interface PendingCollector {
+    id: string;
+    name: string;
+    phone: string;
+    vehiclePlate: string;
+    createdAt: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export const collectorService = {
@@ -41,6 +52,34 @@ export const collectorService = {
      */
     async registerCollector(data: any): Promise<boolean> {
         const res = await apiPost<{ success: boolean }>('/admin/collectors', data);
+        return res.success;
+    },
+
+    /**
+     * GET /api/v1/admin/collectors/pending
+     * Admin-only: List collectors awaiting approval
+     */
+    async getPendingCollectors(): Promise<PendingCollector[]> {
+        const res = await apiGet<{ success: boolean; data: any[] }>('/admin/collectors/pending');
+        if (res.success && res.data) {
+            return res.data.map(c => ({
+                id: c.id,
+                name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.phone,
+                phone: c.phone,
+                vehiclePlate: c.vehiclePlate || "N/A",
+                createdAt: c.createdAt,
+                status: c.status
+            }));
+        }
+        return [];
+    },
+
+    /**
+     * POST /api/v1/admin/collectors/{id}/approve
+     * Admin-only: Approve or reject a collector
+     */
+    async approveCollector(id: string, action: 'APPROVE' | 'REJECT'): Promise<boolean> {
+        const res = await apiPost<{ success: boolean }>(`/admin/collectors/${id}/approve`, { action });
         return res.success;
     },
 

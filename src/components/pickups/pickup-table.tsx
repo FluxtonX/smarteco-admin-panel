@@ -9,16 +9,17 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, CheckCircle, Clock } from "lucide-react";
+import { Eye, Pencil, CheckCircle, Clock, UserPlus } from "lucide-react";
 import { PickupRecord } from "@/services/pickup.service";
 import { cn } from "@/lib/utils";
 
 interface PickupTableProps {
     pickups: PickupRecord[];
     isLoading: boolean;
+    onAssign?: (pickupId: string) => void;
 }
 
-export function PickupTable({ pickups, isLoading }: PickupTableProps) {
+export function PickupTable({ pickups, isLoading, onAssign }: PickupTableProps) {
     const getWasteBadgeStyle = (type: string) => {
         switch (type) {
             case 'Organic': return "bg-green-50 text-green-700 border-green-100";
@@ -108,6 +109,15 @@ export function PickupTable({ pickups, isLoading }: PickupTableProps) {
                             </TableCell>
                             <TableCell className="px-6 py-4">
                                 <div className="flex items-center justify-center space-x-3">
+                                    {pickup.collector === "Unassigned" && (
+                                        <button 
+                                            onClick={() => onAssign?.(pickup.id)}
+                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-100 shadow-sm"
+                                            title="Assign Collector"
+                                        >
+                                            <UserPlus className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     <button className="p-1.5 text-gray-400 hover:text-primary-green hover:bg-green-50 rounded-md transition-all">
                                         <Eye className="w-4 h-4" />
                                     </button>

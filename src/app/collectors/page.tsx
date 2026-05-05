@@ -9,44 +9,71 @@ import { CollectorDetailsModal } from "@/components/collectors/collector-details
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown, Filter } from "lucide-react";
-import { collectorService, CollectorRecord } from "@/services/collector.service";
+import { collectorService, CollectorRecord, PendingCollector } from "@/services/collector.service";
 import { useSearch } from "@/context/search-context";
 import { LiveStatus } from "@/components/ui/live-status";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PendingCollectorTable } from "@/components/collectors/pending-collector-table";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function CollectorManagementPage() {
     const { searchQuery, setSearchQuery } = useSearch();
     const [collectors, setCollectors] = useState<CollectorRecord[]>([]);
+    const [pendingCollectors, setPendingCollectors] = useState<PendingCollector[]>([]);
     const [stats, setStats] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedCollector, setSelectedCollector] = useState<CollectorRecord | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>("All Status");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { toast } = useToast();
+
+    async function loadData() {
+        setIsLoading(true);
+        try {
+            const [collectorsData, pendingData, statsData] = await Promise.all([
+                collectorService.getCollectors(),
+                collectorService.getPendingCollectors(),
+                collectorService.getStats()
+            ]);
+            setCollectors(collectorsData);
+            setPendingCollectors(pendingData);
+            setStats(statsData);
+        } catch (error) {
+            console.error("Failed to load collector data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     useEffect(() => {
-        async function loadData() {
-            setIsLoading(true);
-            try {
-                const [collectorsData, statsData] = await Promise.all([
-                    collectorService.getCollectors(),
-                    collectorService.getStats()
-                ]);
-                setCollectors(collectorsData);
-                setStats(statsData);
-            } catch (error) {
-                console.error("Failed to load collector data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
         loadData();
     }, []);
+
+    const handleApproval = async (id: string, action: 'APPROVE' | 'REJECT') => {
+        try {
+            const success = await collectorService.approveCollector(id, action);
+            if (success) {
+                toast({
+                    title: `Collector ${action === 'APPROVE' ? 'Approved' : 'Rejected'}`,
+                    description: `The collector status has been updated successfully.`,
+                });
+                loadData();
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to update collector status.",
+                variant: "destructive"
+            });
+        }
+    };
 
     const filteredCollectors = collectors.filter(c => {
         const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -108,22 +135,51 @@ export default function CollectorManagementPage() {
                         </div>
                     </div>
 
-                    {/* Main Table Area */}
-                    <div className="-mx-4 md:mx-0 overflow-x-auto">
-                        <CollectorTable
-                            collectors={filteredCollectors}
-                            isLoading={isLoading}
-                            onView={(c) => {
-                                setSelectedCollector(c);
-                                setIsModalOpen(true);
-                            }}
-                            onEdit={(c) => {
-                                setSelectedCollector(c);
-                                setIsModalOpen(true);
-                            }}
-                        />
-                    </div>
+                    {/* Main Table Area with Tabs */}
+                    <Tabs defaultValue="all" className="w-full">
+                        <TabsList className="bg-white border border-gray-100 p-1 h-12 rounded-[4px] mb-6">
+                            <TabsTrigger value="all" className="px-6 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-primary-green data-[state=active]:text-white">
+                                All Collectors ({collectors.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="pending" className="px-6 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-primary-green data-[state=active]:text-white relative">
+                                Pending Approvals
+                                {pendingCollectors.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white">
+                                        {pendingCollectors.length}
+                                    </span>
+                                )}
+                            </TabsTrigger>
+                        </TabsList>
 
+                        <TabsContent value="all">
+                            <div className="-mx-4 md:mx-0 overflow-x-auto">
+                                <CollectorTable
+                                    collectors={filteredCollectors}
+                                    isLoading={isLoading}
+                                    onView={(c) => {
+                                        setSelectedCollector(c);
+                                        setIsModalOpen(true);
+                                    }}
+                                    onEdit={(c) => {
+                                        setSelectedCollector(c);
+                                        setIsModalOpen(true);
+                                    }}
+                                />
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="pending">
+                            <div className="-mx-4 md:mx-0 overflow-x-auto">
+                                <PendingCollectorTable
+                                    collectors={pendingCollectors}
+                                    isLoading={isLoading}
+                                    onApprove={(id) => handleApproval(id, 'APPROVE')}
+                                    onReject={(id) => handleApproval(id, 'REJECT')}
+                                />
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+<br></br>
                     {/* Modal */}
                     <CollectorDetailsModal
                         collector={selectedCollector}

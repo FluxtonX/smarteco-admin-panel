@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Mail, Lock, Eye, EyeOff, ShieldCheck, Phone } from "lucide-react";
+import { Trash2, Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -13,9 +13,8 @@ import { authService } from "@/services/auth.service";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [phone, setPhone] = useState("+250788123456");
   const [email, setEmail] = useState("admin@smarteco.rw");
-  const [password, setPassword] = useState("admin123");
+  const [password, setPassword] = useState("smartadmin321");
   const [authError, setAuthError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -24,17 +23,22 @@ export default function LoginPage() {
     e.preventDefault();
     setAuthError("");
     
-    if (email !== "admin@smarteco.rw" || password !== "admin123") {
+    if (email !== "admin@smarteco.rw" || password !== "smartadmin321") {
         setAuthError("Invalid admin email or password provided.");
         return;
     }
 
     setIsLoading(true);
     try {
-        await authService.sendOtp(phone);
-        router.push(`/2fa?phone=${encodeURIComponent(phone)}`);
-    } catch (error) {
-        alert("Failed to send OTP. Please check the network.");
+        const response = await authService.adminLogin(email, password);
+        if (response.success && response.data.accessToken) {
+            localStorage.setItem("smarteco_token", response.data.accessToken);
+            router.push("/dashboard");
+        } else {
+            setAuthError("Authentication failed. No access token received.");
+        }
+    } catch (error: any) {
+        setAuthError(error.message || "Failed to login. Please check your credentials.");
         console.error(error);
     } finally {
         setIsLoading(false);
@@ -71,19 +75,6 @@ export default function LoginPage() {
                   {authError}
                 </div>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">Phone Number (Rwandan)</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input 
-                    id="phone" 
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+250788123456" 
-                    className="pl-10 bg-gray-50 border-gray-200 focus:ring-[#1E8449] focus:border-[#1E8449]"
-                  />
-                </div>
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>
@@ -139,7 +130,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full bg-[#1E8449] hover:bg-[#145A32] text-white font-bold py-6 rounded-md shadow-sm transition-all duration-200 disabled:opacity-70"
             >
-              {isLoading ? "Requesting Code..." : "Sign In to Admin Portal"}
+              {isLoading ? "Signing in..." : "Sign In to Admin Portal"}
             </Button>
           </CardContent>
 
@@ -152,8 +143,7 @@ export default function LoginPage() {
               </div>
               <div className="grid grid-cols-1 gap-1 text-sm text-blue-600 font-medium">
                 <div>Email: <span className="text-blue-800">admin@smarteco.rw</span></div>
-                <div>Password: <span className="text-blue-800">admin123</span></div>
-                <div>Phone: <span className="text-blue-800">+250788123456</span></div>
+                <div>Password: <span className="text-blue-800">smartadmin321</span></div>
               </div>
             </div>
           </CardFooter>

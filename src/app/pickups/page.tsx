@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Search, ChevronDown, Filter } from "lucide-react";
 import { pickupService, PickupRecord, PickupStats as PickupStatsData } from "@/services/pickup.service";
 import { useSearch } from "@/context/search-context";
+import { AssignCollectorModal } from "@/components/pickups/assign-collector-modal";
+import { useToast } from "@/components/ui/use-toast";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -25,25 +27,55 @@ export default function PickupManagementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>("All Status");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedPickupId, setSelectedPickupId] = useState<string | null>(null);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const { toast } = useToast();
+
+    async function loadData() {
+        setIsLoading(true);
+        try {
+            const [pickupsData, statsData] = await Promise.all([
+                pickupService.getPickups(),
+                pickupService.getStats()
+            ]);
+            setPickups(pickupsData);
+            setStats(statsData);
+        } catch (error) {
+            console.error("Failed to load pickup data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     useEffect(() => {
-        async function loadData() {
-            setIsLoading(true);
-            try {
-                const [pickupsData, statsData] = await Promise.all([
-                    pickupService.getPickups(),
-                    pickupService.getStats()
-                ]);
-                setPickups(pickupsData);
-                setStats(statsData);
-            } catch (error) {
-                console.error("Failed to load pickup data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
         loadData();
     }, []);
+
+    const handleAssignClick = (pickupId: string) => {
+        setSelectedPickupId(pickupId);
+        setIsAssignModalOpen(true);
+    };
+
+    const handleAssignCollector = async (collectorId: string) => {
+        if (!selectedPickupId) return;
+        try {
+            const res = await pickupService.assignCollector(selectedPickupId, collectorId);
+            if (res.success) {
+                toast({
+                    title: "Success",
+                    description: "Collector assigned successfully.",
+                });
+                setIsAssignModalOpen(false);
+                loadData();
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to assign collector.",
+                variant: "destructive"
+            });
+        }
+    };
 
     const filteredPickups = pickups.filter(p => {
         const matchesSearch = p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -110,8 +142,16 @@ export default function PickupManagementPage() {
                         <PickupTable
                             pickups={filteredPickups}
                             isLoading={isLoading}
+                            onAssign={handleAssignClick}
                         />
                     </div>
+
+                    <AssignCollectorModal 
+                        pickupId={selectedPickupId}
+                        isOpen={isAssignModalOpen}
+                        onClose={() => setIsAssignModalOpen(false)}
+                        onAssign={handleAssignCollector}
+                    />
                 </main>
             </div>
         </div>

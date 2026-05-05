@@ -9,13 +9,48 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { AlertsNotifications } from "@/components/dashboard/alerts-notifications";
 import { Users, Truck, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { LiveStatus } from "@/components/ui/live-status";
+import { dashboardService, Stat } from "@/services/dashboard.service";
 
 export default function DashboardPage() {
     const [currentTime, setCurrentTime] = useState<string>("");
+    const [stats, setStats] = useState<Stat[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setCurrentTime(new Date().toLocaleTimeString());
+        
+        async function loadStats() {
+            try {
+                const data = await dashboardService.getStats();
+                setStats(data);
+            } catch (error) {
+                console.error("Failed to load stats:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadStats();
     }, []);
+
+    const getIcon = (title: string) => {
+        switch (title) {
+            case "Total Users": return Users;
+            case "Active Pickups": return Truck;
+            case "Revenue (Month)": return DollarSign;
+            case "Waste Collected": return TrendingUp;
+            default: return Zap;
+        }
+    };
+
+    const getIconColor = (title: string) => {
+        switch (title) {
+            case "Total Users": return "bg-blue-50 text-blue-600";
+            case "Active Pickups": return "bg-indigo-50 text-indigo-600";
+            case "Revenue (Month)": return "bg-orange-50 text-orange-600";
+            case "Waste Collected": return "bg-green-50 text-green-600";
+            default: return "bg-gray-50 text-gray-600";
+        }
+    };
 
     return (
         <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1600px] mx-auto">
@@ -37,38 +72,24 @@ export default function DashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <StatCard
-                    title="Total Users"
-                    value="4,041"
-                    change="+12% from last week"
-                    icon={Users}
-                    iconColor="bg-blue-50 text-blue-600"
-                    trend="up"
-                />
-                <StatCard
-                    title="Active Pickups Today"
-                    value="234"
-                    change="+8% from yesterday"
-                    icon={Truck}
-                    iconColor="bg-indigo-50 text-indigo-600"
-                    trend="up"
-                />
-                <StatCard
-                    title="Revenue (This Month)"
-                    value="12.4M RWF"
-                    change="+18% growth"
-                    icon={DollarSign}
-                    iconColor="bg-orange-50 text-orange-600"
-                    trend="up"
-                />
-                <StatCard
-                    title="Total Waste Collected"
-                    value="8,520 kg"
-                    subtext="This week"
-                    icon={TrendingUp}
-                    iconColor="bg-green-50 text-green-600"
-                    trend="up"
-                />
+                {isLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                        <div key={i} className="h-[98px] bg-white border border-gray-100 rounded-[4px] animate-pulse" />
+                    ))
+                ) : (
+                    stats.map((stat, index) => (
+                        <StatCard
+                            key={index}
+                            title={stat.title}
+                            value={stat.value}
+                            change={stat.change}
+                            subtext={stat.subtext}
+                            icon={getIcon(stat.title)}
+                            iconColor={getIconColor(stat.title)}
+                            trend={stat.trend}
+                        />
+                    ))
+                )}
             </div>
 
             {/* Charts Grid */}

@@ -223,5 +223,13 @@ export const pickupService = {
      */
     async cancelPickup(pickupId: string, reason?: string): Promise<GenericActionResponse> {
         return apiPatch<GenericActionResponse>(`/pickups/${pickupId}/cancel`, { reason });
+    },
+
+    /**
+     * POST /api/v1/admin/pickups/{id}/assign
+     * Admin-only: Assign a collector to a pickup.
+     */
+    async assignCollector(pickupId: string, collectorId: string): Promise<GenericActionResponse> {
+        return apiPost<GenericActionResponse>(`/admin/pickups/${pickupId}/assign`, { collectorId });
     }
 };

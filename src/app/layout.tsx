@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { SearchProvider } from "@/context/search-context";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function RootLayout({
   children,
@@ -32,6 +33,7 @@ export default function RootLayout({
         <SearchProvider>
           {children}
         </SearchProvider>
+        <Toaster />
       </body>
     </html>
   );
