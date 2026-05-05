@@ -7,7 +7,7 @@ import { WasteChart } from "@/components/dashboard/waste-chart";
 import { ActiveCollectors } from "@/components/dashboard/active-collectors";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { AlertsNotifications } from "@/components/dashboard/alerts-notifications";
-import { Users, Truck, DollarSign, TrendingUp, Zap } from "lucide-react";
+import { Users, Truck, DollarSign, TrendingUp } from "lucide-react";
 import { LiveStatus } from "@/components/ui/live-status";
 import { dashboardService, Stat } from "@/services/dashboard.service";
 
@@ -92,16 +92,16 @@ export default function DashboardPage() {
                 )}
             </div>
 
-            {/* Charts Grid */}
+            {/* Charts Grid - Equalized columns */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <PickupChart />
-                <WasteChart />
+                <PickupChart data={stats?.pickupTrend} isLoading={isLoading} />
+                <WasteChart stats={stats?.pickups?.byWasteType} isLoading={isLoading} />
             </div>
 
             {/* Details Grid - Equalized columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ActiveCollectors />
-                <RecentActivity />
+                <ActiveCollectors stats={stats} isLoading={isLoading} />
+                <RecentActivity activities={stats?.recentActivity} isLoading={isLoading} />
             </div>
 
             {/* Alerts Section */}
