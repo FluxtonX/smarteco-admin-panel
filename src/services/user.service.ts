@@ -1,4 +1,4 @@
-import { apiGet, apiDelete } from '../lib/api-client';
+import { apiGet, apiDelete, apiPost, apiPatch } from '../lib/api-client';
 
 export interface UserProfile {
     id: string;
@@ -141,6 +141,26 @@ export const userService = {
             return res.success;
         } catch (error) {
             console.error('Failed to update profile:', error);
+            throw error;
+        }
+    },
+
+    createUser: async (data: any): Promise<boolean> => {
+        try {
+            const res: any = await apiPost('/admin/users', data);
+            return res.success ?? true;
+        } catch (error) {
+            console.error('Failed to create user:', error);
+            throw error;
+        }
+    },
+
+    toggleUserStatus: async (id: string): Promise<boolean> => {
+        try {
+            const res: any = await apiPatch(`/admin/users/${id}/toggle-status`, {});
+            return res.success ?? true;
+        } catch (error) {
+            console.error(`Failed to toggle status for user ${id}:`, error);
             throw error;
         }
     }

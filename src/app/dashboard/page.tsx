@@ -7,13 +7,14 @@ import { WasteChart } from "@/components/dashboard/waste-chart";
 import { ActiveCollectors } from "@/components/dashboard/active-collectors";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { AlertsNotifications } from "@/components/dashboard/alerts-notifications";
-import { Users, Truck, DollarSign, TrendingUp } from "lucide-react";
+import { Users, Truck, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { LiveStatus } from "@/components/ui/live-status";
 import { dashboardService, Stat } from "@/services/dashboard.service";
 
 export default function DashboardPage() {
     const [currentTime, setCurrentTime] = useState<string>("");
     const [stats, setStats] = useState<Stat[]>([]);
+    const [recentActivity, setRecentActivity] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -21,8 +22,12 @@ export default function DashboardPage() {
         
         async function loadStats() {
             try {
-                const data = await dashboardService.getStats();
+                const [data, activity] = await Promise.all([
+                    dashboardService.getStats(),
+                    dashboardService.getRecentActivity()
+                ]);
                 setStats(data);
+                setRecentActivity(activity);
             } catch (error) {
                 console.error("Failed to load stats:", error);
             } finally {
@@ -94,14 +99,14 @@ export default function DashboardPage() {
 
             {/* Charts Grid - Equalized columns */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <PickupChart data={stats?.pickupTrend} isLoading={isLoading} />
-                <WasteChart stats={stats?.pickups?.byWasteType} isLoading={isLoading} />
+                <PickupChart data={undefined} isLoading={isLoading} />
+                <WasteChart stats={undefined} isLoading={isLoading} />
             </div>
 
             {/* Details Grid - Equalized columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ActiveCollectors stats={stats} isLoading={isLoading} />
-                <RecentActivity activities={stats?.recentActivity} isLoading={isLoading} />
+                <ActiveCollectors stats={null} isLoading={isLoading} />
+                <RecentActivity activities={recentActivity} isLoading={isLoading} />
             </div>
 
             {/* Alerts Section */}

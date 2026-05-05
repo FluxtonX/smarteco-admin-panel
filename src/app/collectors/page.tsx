@@ -8,12 +8,13 @@ import { CollectorTable } from "@/components/collectors/collector-table";
 import { CollectorDetailsModal } from "@/components/collectors/collector-details-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, Filter } from "lucide-react";
+import { Search, ChevronDown, Filter, ArrowLeft } from "lucide-react";
 import { collectorService, CollectorRecord, PendingCollector } from "@/services/collector.service";
 import { useSearch } from "@/context/search-context";
 import { LiveStatus } from "@/components/ui/live-status";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PendingCollectorTable } from "@/components/collectors/pending-collector-table";
+import Link from "next/link";
 import {
     DropdownMenu,
     DropdownMenuContent,
