@@ -5,7 +5,8 @@ import { apiGet, apiPost, apiPatch } from "@/lib/api-client";
 // ─── Frontend Display Interfaces (Do Not Change) ─────────────────────────────
 
 export interface PickupRecord {
-    id: string;
+    id: string; // The reference (e.g. ECO-A3F8K) for display
+    uuid: string; // The actual database UUID for API calls
     user: {
         name: string;
         area: string;
@@ -134,6 +135,7 @@ function mapTimeSlot(slot: string): string {
 function mapBackendPickupToFrontend(bp: BackendPickup): PickupRecord {
     return {
         id: bp.reference, // Use Reference ECO-XYZ for Display ID
+        uuid: bp.id,     // Keep UUID for API logic
         user: {
             name: "Self", // In /pickups/me, it's always the authenticated user
             area: bp.address.split(',')[0] || bp.address,
@@ -159,13 +161,14 @@ export const pickupService = {
         if (res.success && res.data) {
             return res.data.map(p => ({
                 id: p.reference || p.id,
+                uuid: p.id,
                 user: {
                     name: `${p.user?.firstName || ''} ${p.user?.lastName || ''}`.trim() || 'Guest',
                     area: p.address?.split(',')[0] || 'Kigali'
                 },
                 wasteType: mapWasteType(p.wasteType),
                 weight: p.weightKg ? `${p.weightKg} kg` : '--',
-                collector: p.collector ? `${p.collector.firstName} ${p.collector.lastName}` : 'Unassigned',
+                collector: p.collector ? p.collector.name : 'Unassigned',
                 status: mapStatus(p.status),
                 payment: mapPayment(p.payment),
                 timeSlot: mapTimeSlot(p.timeSlot),

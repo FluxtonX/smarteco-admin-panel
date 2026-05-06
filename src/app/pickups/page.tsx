@@ -28,6 +28,7 @@ export default function PickupManagementPage() {
     const [statusFilter, setStatusFilter] = useState<string>("All Status");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedPickupId, setSelectedPickupId] = useState<string | null>(null);
+    const [selectedPickupRef, setSelectedPickupRef] = useState<string | null>(null);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const { toast } = useToast();
 
@@ -51,8 +52,10 @@ export default function PickupManagementPage() {
         loadData();
     }, []);
 
-    const handleAssignClick = (pickupId: string) => {
-        setSelectedPickupId(pickupId);
+    const handleAssignClick = (uuid: string) => {
+        const pickup = pickups.find(p => p.uuid === uuid);
+        setSelectedPickupId(uuid);
+        setSelectedPickupRef(pickup?.id || uuid);
         setIsAssignModalOpen(true);
     };
 
@@ -150,6 +153,7 @@ export default function PickupManagementPage() {
 
                     <AssignCollectorModal 
                         pickupId={selectedPickupId}
+                        pickupRef={selectedPickupRef}
                         isOpen={isAssignModalOpen}
                         onClose={() => setIsAssignModalOpen(false)}
                         onAssign={handleAssignCollector}
