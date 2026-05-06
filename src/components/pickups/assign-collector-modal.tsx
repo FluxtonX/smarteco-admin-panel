@@ -10,15 +10,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { collectorService, CollectorRecord } from "@/services/collector.service";
 import { User, Truck, MapPin } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AssignCollectorModalProps {
     pickupId: string | null;
+    pickupRef?: string | null;
     isOpen: boolean;
     onClose: () => void;
     onAssign: (collectorId: string) => void;
 }
 
-export function AssignCollectorModal({ pickupId, isOpen, onClose, onAssign }: AssignCollectorModalProps) {
+export function AssignCollectorModal({ pickupId, pickupRef, isOpen, onClose, onAssign }: AssignCollectorModalProps) {
     const [collectors, setCollectors] = useState<CollectorRecord[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -29,7 +31,7 @@ export function AssignCollectorModal({ pickupId, isOpen, onClose, onAssign }: As
                 try {
                     const data = await collectorService.getCollectors();
                     // Filter for available collectors if needed
-                    setCollectors(data.filter(c => c.status !== 'Offline'));
+                    setCollectors(data);
                 } catch (error) {
                     console.error("Failed to load collectors:", error);
                 } finally {
@@ -45,7 +47,7 @@ export function AssignCollectorModal({ pickupId, isOpen, onClose, onAssign }: As
             <DialogContent className="max-w-md bg-white p-0 overflow-hidden rounded-xl border-none shadow-2xl font-sans">
                 <DialogHeader className="p-6 bg-[#F8F9FA] border-b border-gray-100">
                     <DialogTitle className="text-xl font-bold text-[#1A1A1A]">Assign Collector</DialogTitle>
-                    <p className="text-xs font-semibold text-[#636E72] mt-1 uppercase tracking-wider">Pickup Reference: {pickupId}</p>
+                    <p className="text-xs font-semibold text-[#636E72] mt-1 uppercase tracking-wider">Pickup Reference: {pickupRef || pickupId}</p>
                 </DialogHeader>
 
                 <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
@@ -68,7 +70,17 @@ export function AssignCollectorModal({ pickupId, isOpen, onClose, onAssign }: As
                                         <User className="w-5 h-5 text-gray-400 group-hover:text-primary-green" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <h4 className="text-sm font-bold text-[#2D3436]">{collector.name}</h4>
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-bold text-[#2D3436]">{collector.name}</h4>
+                                            <span className={cn(
+                                                "text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ml-2",
+                                                collector.status === 'Available' ? "bg-green-100 text-green-700" : 
+                                                collector.status === 'On Route' ? "bg-blue-100 text-blue-700" : 
+                                                "bg-gray-100 text-gray-500"
+                                            )}>
+                                                {collector.status}
+                                            </span>
+                                        </div>
                                         <div className="flex items-center space-x-3 text-[11px] font-semibold text-gray-400">
                                             <div className="flex items-center">
                                                 <Truck className="w-3 h-3 mr-1" />

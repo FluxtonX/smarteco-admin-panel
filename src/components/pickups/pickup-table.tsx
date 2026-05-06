@@ -111,7 +111,7 @@ export function PickupTable({ pickups, isLoading, onAssign }: PickupTableProps) 
                                 <div className="flex items-center justify-center space-x-3">
                                     {pickup.collector === "Unassigned" && (
                                         <button 
-                                            onClick={() => onAssign?.(pickup.id)}
+                                            onClick={() => onAssign?.(pickup.uuid)}
                                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-100 shadow-sm"
                                             title="Assign Collector"
                                         >

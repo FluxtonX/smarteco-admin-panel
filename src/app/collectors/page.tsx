@@ -76,7 +76,23 @@ export default function CollectorManagementPage() {
         }
     };
 
-    const filteredCollectors = collectors.filter(c => {
+    const allCollectors: any[] = [
+        ...collectors,
+        ...pendingCollectors.map((pc: any) => ({
+            id: pc.id,
+            name: pc.name,
+            phone: pc.phone,
+            zone: "N/A",
+            status: "Pending Approval",
+            vehicle: pc.vehiclePlate,
+            rating: 0,
+            totalPickups: 0,
+            performance: 0,
+            isPending: true
+        }))
+    ];
+
+    const filteredCollectors = allCollectors.filter((c: any) => {
         const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.id.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -135,7 +151,7 @@ export default function CollectorManagementPage() {
                                     <ChevronDown className="w-4 h-4 text-gray-400" />
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-[calc(100vw-2rem)] md:w-56 rounded-xl border-gray-100 shadow-xl p-2">
-                                    {["All Status", "Available", "On Route", "Offline"].map((status) => (
+                                    {["All Status", "Available", "On Route", "Offline", "Pending Approval"].map((status) => (
                                         <DropdownMenuItem key={status} onClick={() => setStatusFilter(status)} className="rounded-lg font-bold text-gray-600 focus:text-primary-green focus:bg-green-50">
                                             {status}
                                         </DropdownMenuItem>
@@ -145,50 +161,22 @@ export default function CollectorManagementPage() {
                         </div>
                     </div>
 
-                    {/* Main Table Area with Tabs */}
-                    <Tabs defaultValue="all" className="w-full">
-                        <TabsList className="bg-white border border-gray-100 p-1 h-12 rounded-[4px] mb-6">
-                            <TabsTrigger value="all" className="px-6 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-primary-green data-[state=active]:text-white">
-                                All Collectors ({collectors.length})
-                            </TabsTrigger>
-                            <TabsTrigger value="pending" className="px-6 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-primary-green data-[state=active]:text-white relative">
-                                Pending Approvals
-                                {pendingCollectors.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white">
-                                        {pendingCollectors.length}
-                                    </span>
-                                )}
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="all">
-                            <div className="-mx-4 md:mx-0 overflow-x-auto">
-                                <CollectorTable
-                                    collectors={filteredCollectors}
-                                    isLoading={isLoading}
-                                    onView={(c) => {
-                                        setSelectedCollector(c);
-                                        setIsModalOpen(true);
-                                    }}
-                                    onEdit={(c) => {
-                                        setSelectedCollector(c);
-                                        setIsModalOpen(true);
-                                    }}
-                                />
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="pending">
-                            <div className="-mx-4 md:mx-0 overflow-x-auto">
-                                <PendingCollectorTable
-                                    collectors={pendingCollectors}
-                                    isLoading={isLoading}
-                                    onApprove={(id) => handleApproval(id, 'APPROVE')}
-                                    onReject={(id) => handleApproval(id, 'REJECT')}
-                                />
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                    <div className="-mx-4 md:mx-0 overflow-x-auto">
+                        <CollectorTable
+                            collectors={filteredCollectors}
+                            isLoading={isLoading}
+                            onView={(c) => {
+                                setSelectedCollector(c);
+                                setIsModalOpen(true);
+                            }}
+                            onEdit={(c) => {
+                                setSelectedCollector(c);
+                                setIsModalOpen(true);
+                            }}
+                            onApprove={(id) => handleApproval(id, 'APPROVE')}
+                            onReject={(id) => handleApproval(id, 'REJECT')}
+                        />
+                    </div>
 <br></br>
                     {/* Modal */}
                     <CollectorDetailsModal

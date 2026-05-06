@@ -15,19 +15,23 @@ import {
     Eye,
     Pencil,
     User,
+    CheckCircle2,
+    XCircle
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { CollectorRecord } from "@/services/collector.service";
 
 interface CollectorTableProps {
-    collectors: CollectorRecord[];
+    collectors: any[];
     isLoading?: boolean;
-    onView?: (collector: CollectorRecord) => void;
-    onEdit?: (collector: CollectorRecord) => void;
+    onView?: (collector: any) => void;
+    onEdit?: (collector: any) => void;
+    onApprove?: (id: string) => void;
+    onReject?: (id: string) => void;
 }
 
-export function CollectorTable({ collectors, isLoading, onView, onEdit }: CollectorTableProps) {
+export function CollectorTable({ collectors, isLoading, onView, onEdit, onApprove, onReject }: CollectorTableProps) {
     if (isLoading) {
         return (
             <div className="border border-gray-100 rounded-xl bg-white p-12 flex flex-col items-center justify-center space-y-4">
@@ -61,7 +65,7 @@ export function CollectorTable({ collectors, isLoading, onView, onEdit }: Collec
                                 <div className="flex items-center space-x-3">
                                     <Avatar className="h-10 w-10 border border-gray-100 rounded-md">
                                         <AvatarFallback className="bg-primary-green text-white font-bold text-xs rounded-md">
-                                            {collector.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                            {collector.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-col">
@@ -81,7 +85,8 @@ export function CollectorTable({ collectors, isLoading, onView, onEdit }: Collec
                                     "px-3 py-1 text-[10px] font-bold uppercase border-none rounded-[4px] shadow-sm",
                                     collector.status === "On Route" && "bg-blue-100/80 text-blue-700",
                                     collector.status === "Available" && "bg-green-100/80 text-green-700",
-                                    collector.status === "Offline" && "bg-gray-100/80 text-gray-600"
+                                    collector.status === "Offline" && "bg-gray-100/80 text-gray-600",
+                                    collector.status === "Pending Approval" && "bg-yellow-100/80 text-yellow-700"
                                 )}>
                                     {collector.status}
                                 </Badge>
@@ -112,20 +117,41 @@ export function CollectorTable({ collectors, isLoading, onView, onEdit }: Collec
                             </TableCell>
                             <TableCell className="px-6 text-right">
                                 <div className="flex items-center justify-end space-x-2">
-                                    <button
-                                        onClick={() => onView?.(collector)}
-                                        className="p-2 hover:bg-gray-100 hover:text-primary-green rounded-lg border border-transparent transition-all text-gray-400"
-                                        title="View Details"
-                                    >
-                                        <Eye className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => onEdit?.(collector)}
-                                        className="p-2 hover:bg-gray-100 hover:text-blue-600 rounded-lg border border-transparent transition-all text-gray-400"
-                                        title="Edit Collector"
-                                    >
-                                        <Pencil className="w-4 h-4" />
-                                    </button>
+                                    {collector.status === "Pending Approval" ? (
+                                        <>
+                                            <button
+                                                onClick={() => onApprove?.(collector.id)}
+                                                className="p-2 hover:bg-green-50 text-green-600 rounded-lg border border-transparent transition-all"
+                                                title="Approve"
+                                            >
+                                                <CheckCircle2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => onReject?.(collector.id)}
+                                                className="p-2 hover:bg-red-50 text-red-600 rounded-lg border border-transparent transition-all"
+                                                title="Reject"
+                                            >
+                                                <XCircle className="w-5 h-5" />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button
+                                                onClick={() => onView?.(collector)}
+                                                className="p-2 hover:bg-gray-100 hover:text-primary-green rounded-lg border border-transparent transition-all text-gray-400"
+                                                title="View Details"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => onEdit?.(collector)}
+                                                className="p-2 hover:bg-gray-100 hover:text-blue-600 rounded-lg border border-transparent transition-all text-gray-400"
+                                                title="Edit Collector"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </TableCell>
                         </TableRow>
