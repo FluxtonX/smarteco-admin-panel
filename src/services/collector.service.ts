@@ -79,7 +79,9 @@ export const collectorService = {
      * Admin-only: Approve or reject a collector
      */
     async approveCollector(id: string, action: 'APPROVE' | 'REJECT'): Promise<boolean> {
-        const res = await apiPost<{ success: boolean }>(`/admin/collectors/${id}/approve`, { action });
+        const res = await apiPatch<{ success: boolean }>(`/admin/collectors/${id}/approve`, { 
+            approved: action === 'APPROVE' 
+        });
         return res.success;
     },
 
