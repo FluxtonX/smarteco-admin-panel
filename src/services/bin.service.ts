@@ -182,20 +182,17 @@ export const binService = {
         return { total: 0, alerts: 0, active: 0, maintenance: 0 };
     },
 
-    /**
-     * GET /api/v1/pickups
-     * For Admin Assignments, we cross-pollinate with Pickup data, 
-     * but since it's just resident bins right now, we shape an extrapolated visual
-     */
     getAssignments: async (): Promise<AssignmentRecord[]> => {
-        const res = await apiGet<UserBinsResponse>('/bins');
-        
-        // Build mock assignments from the live bins to keep the Dashboard visually intact
-        return res.data.map((bin) => ({
-            binId: bin.qrCode,
-            collector: "Simulated Collector",
-            assignedAt: new Date().toISOString().slice(0,16).replace('T', ' '),
-            status: "Pending"
+        const res = await apiGet<{ success: boolean; data: any[] }>('/admin/pickups?limit=50');
+        return res.data
+          .filter((pickup) => pickup.bin?.qrCode || pickup.reference)
+          .map((pickup) => ({
+            binId: pickup.bin?.qrCode || pickup.reference,
+            collector: pickup.collector?.name || "Unassigned",
+            assignedAt: pickup.createdAt
+              ? new Date(pickup.createdAt).toISOString().slice(0, 16).replace('T', ' ')
+              : "",
+            status: pickup.status === "COMPLETED" ? "Completed" : pickup.collector ? "In Progress" : "Pending"
         }));
     },
 
