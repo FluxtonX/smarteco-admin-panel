@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Truck, Star, MapPin, TrendingUp, History, Radio } from "lucide-react";
+import { X, Truck, Star, MapPin, TrendingUp, History, Radio, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CollectorRecord } from "@/services/collector.service";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,36 @@ export function CollectorDetailsModal({ collector, isOpen, onClose }: CollectorD
                             <div className="flex items-center justify-between px-4 py-3 bg-white">
                                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</span>
                                 <span className="text-sm font-bold text-[#2D3436]">{collector.phone}</span>
+                            </div>
+
+                            {/* Documents */}
+                            <div className="flex items-center justify-between px-4 py-3 bg-[#f8f9fa]">
+                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Documents</span>
+                                <div className="flex items-center gap-3">
+                                    {collector.licenseDocumentUrl && (
+                                        <a
+                                            href={collector.licenseDocumentUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs font-bold text-primary-green hover:underline"
+                                        >
+                                            License <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    )}
+                                    {collector.idDocumentUrl && (
+                                        <a
+                                            href={collector.idDocumentUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs font-bold text-primary-green hover:underline"
+                                        >
+                                            ID <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    )}
+                                    {!collector.licenseDocumentUrl && !collector.idDocumentUrl && (
+                                        <span className="text-xs font-semibold text-gray-400">No documents</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
