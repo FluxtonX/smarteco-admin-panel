@@ -13,8 +13,8 @@ import { authService } from "@/services/auth.service";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("admin@smarteco.rw");
-  const [password, setPassword] = useState("smartadmin321");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -23,11 +23,6 @@ export default function LoginPage() {
     e.preventDefault();
     setAuthError("");
     
-    if (email !== "admin@smarteco.rw" || password !== "smartadmin321") {
-        setAuthError("Invalid admin email or password provided.");
-        return;
-    }
-
     setIsLoading(true);
     try {
         const response = await authService.adminLogin(email, password);
@@ -135,17 +130,6 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="px-8 pb-8 pt-0 flex flex-col items-stretch space-y-4">
-            {/* Demo Credentials Box */}
-            <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-4 space-y-2">
-              <div className="flex items-center text-blue-700 text-xs font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-3 h-3 mr-1.5" />
-                Demo Credentials (Development Only)
-              </div>
-              <div className="grid grid-cols-1 gap-1 text-sm text-blue-600 font-medium">
-                <div>Email: <span className="text-blue-800">admin@smarteco.rw</span></div>
-                <div>Password: <span className="text-blue-800">smartadmin321</span></div>
-              </div>
-            </div>
           </CardFooter>
         </Card>
 

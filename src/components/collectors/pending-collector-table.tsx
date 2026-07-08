@@ -9,7 +9,7 @@ import {
     TableRow
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Clock } from "lucide-react";
+import { Check, X, Clock, ExternalLink } from "lucide-react";
 import { PendingCollector } from "@/services/collector.service";
 import { Button } from "@/components/ui/button";
 
@@ -46,6 +46,7 @@ export function PendingCollectorTable({ collectors, isLoading, onApprove, onReje
                         <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Collector</TableHead>
                         <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone</TableHead>
                         <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Vehicle Plate</TableHead>
+                        <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Documents</TableHead>
                         <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Applied Date</TableHead>
                         <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</TableHead>
                         <TableHead className="px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Actions</TableHead>
@@ -59,6 +60,34 @@ export function PendingCollectorTable({ collectors, isLoading, onApprove, onReje
                             </TableCell>
                             <TableCell className="px-6 text-sm font-semibold text-gray-600">{collector.phone}</TableCell>
                             <TableCell className="px-6 text-sm font-bold text-[#2D3436]">{collector.vehiclePlate}</TableCell>
+                            <TableCell className="px-6">
+                                <div className="flex items-center gap-2">
+                                    {collector.licenseDocumentUrl ? (
+                                        <a
+                                            href={collector.licenseDocumentUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs font-bold text-primary-green hover:underline"
+                                        >
+                                            License <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    ) : (
+                                        <span className="text-xs font-semibold text-gray-400">No license</span>
+                                    )}
+                                    {collector.idDocumentUrl ? (
+                                        <a
+                                            href={collector.idDocumentUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs font-bold text-primary-green hover:underline"
+                                        >
+                                            ID <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    ) : (
+                                        <span className="text-xs font-semibold text-gray-400">No ID</span>
+                                    )}
+                                </div>
+                            </TableCell>
                             <TableCell className="px-6">
                                 <div className="flex items-center space-x-1.5 text-gray-500">
                                     <Clock className="w-3.5 h-3.5" />

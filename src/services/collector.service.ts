@@ -12,6 +12,8 @@ export interface CollectorRecord {
     performance: number;
     userType?: string;
     isVerified?: boolean;
+    licenseDocumentUrl?: string;
+    idDocumentUrl?: string;
 }
 
 export interface PendingCollector {
@@ -21,6 +23,8 @@ export interface PendingCollector {
     vehiclePlate: string;
     createdAt: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    licenseDocumentUrl?: string;
+    idDocumentUrl?: string;
 }
 
 export const collectorService = {
@@ -33,14 +37,16 @@ export const collectorService = {
         if (res.success && res.data) {
             return res.data.map(c => ({
                 id: c.id,
-                name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.phone,
+                name: c.name || c.phone,
                 phone: c.phone,
-                zone: c.assignedZone || "Kigali",
-                status: c.isOnline ? (c.currentPickup ? "On Route" : "Available") : "Offline",
+                zone: c.zone || "Kigali",
+                status: c.isAvailable ? "Available" : "Offline",
                 vehicle: c.vehiclePlate || "N/A",
                 rating: c.rating || 0,
                 totalPickups: c.totalPickups || 0,
-                performance: c.performanceScore || 0
+                performance: c.performanceScore || 0,
+                licenseDocumentUrl: c.licenseDocumentUrl,
+                idDocumentUrl: c.idDocumentUrl,
             }));
         }
         return [];
@@ -64,11 +70,13 @@ export const collectorService = {
         if (res.success && res.data) {
             return res.data.map(c => ({
                 id: c.id,
-                name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.phone,
+                name: c.name || c.phone,
                 phone: c.phone,
                 vehiclePlate: c.vehiclePlate || "N/A",
                 createdAt: c.createdAt,
-                status: c.status
+                status: c.status || 'PENDING',
+                licenseDocumentUrl: c.licenseDocumentUrl,
+                idDocumentUrl: c.idDocumentUrl,
             }));
         }
         return [];
@@ -79,7 +87,9 @@ export const collectorService = {
      * Admin-only: Approve or reject a collector
      */
     async approveCollector(id: string, action: 'APPROVE' | 'REJECT'): Promise<boolean> {
-        const res = await apiPost<{ success: boolean }>(`/admin/collectors/${id}/approve`, { action });
+        const res = await apiPatch<{ success: boolean }>(`/admin/collectors/${id}/approve`, { 
+            approved: action === 'APPROVE' 
+        });
         return res.success;
     },
 
