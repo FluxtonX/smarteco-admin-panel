@@ -31,6 +31,7 @@ const MODULE_STYLES: Record<AuditModule, string> = {
     "EcoPoints": "bg-emerald-100 text-emerald-700 border-emerald-200",
     "Collectors": "bg-orange-100 text-orange-700 border-orange-200",
     "Reports": "bg-gray-100 text-gray-700 border-gray-200",
+    "Support": "bg-rose-100 text-rose-700 border-rose-200",
 };
 
 const STATUS_OPTIONS: (AuditStatus | "All")[] = ["All", "Success", "Failed", "Pending"];
@@ -44,7 +45,8 @@ const MODULE_OPTIONS: (AuditModule | "All")[] = [
     "Admin Management",
     "EcoPoints",
     "Collectors",
-    "Reports"
+    "Reports",
+    "Support"
 ];
 
 export function AuditTable({
