@@ -22,20 +22,45 @@ import {
     Home,
     CheckCircle2,
     AlertCircle,
-    Trash2
+    Trash2,
+    AlertTriangle,
+    Ban
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UserRecord } from "@/services/user.service";
+import { UserRecord, userService } from "@/services/user.service";
 import { UserDetailsModal } from "./user-details-modal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface UserTableProps {
     users: UserRecord[];
     isLoading?: boolean;
+    onUsersChanged?: () => void;
 }
 
-export function UserTable({ users, isLoading }: UserTableProps) {
+export function UserTable({ users, isLoading, onUsersChanged }: UserTableProps) {
     const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    
+    // Delete Confirmation Modal State
+    const [userToDelete, setUserToDelete] = useState<UserRecord | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) return;
+        setIsDeleting(true);
+        const rawId = userToDelete.rawId || userToDelete.id;
+        await userService.deleteUser(rawId);
+        setIsDeleting(false);
+        setUserToDelete(null);
+        if (onUsersChanged) onUsersChanged();
+    };
+
+    const handleToggleStatus = async (user: UserRecord) => {
+        const rawId = user.rawId || user.id;
+        await userService.toggleUserStatus(rawId);
+        if (onUsersChanged) onUsersChanged();
+    };
 
     if (isLoading) {
         return (
@@ -61,7 +86,7 @@ export function UserTable({ users, isLoading }: UserTableProps) {
     }
 
     return (
-        <div className="border border-gray-100 rounded-xl bg-white shadow-sm overflow-hidden">
+        <div className="border border-gray-100 rounded-xl bg-white shadow-sm overflow-hidden font-sans">
             <Table>
                 <TableHeader className="bg-gray-50/50">
                     <TableRow className="hover:bg-transparent border-gray-100">
@@ -125,29 +150,39 @@ export function UserTable({ users, isLoading }: UserTableProps) {
                                 <span className="text-sm font-bold text-[#2D3436]">{user.pickups}</span>
                             </TableCell>
                             <TableCell className="px-4">
-                                <Badge className={cn(
-                                    "px-2 py-0.5 text-[9px] font-bold uppercase border-none rounded-[4px] flex items-center w-fit space-x-1 shadow-sm",
-                                    user.status === "Active" ? "bg-green-100/50 text-green-700" : "bg-red-100/50 text-red-700"
-                                )}>
+                                <Badge
+                                    onClick={() => handleToggleStatus(user)}
+                                    className={cn(
+                                        "px-2 py-0.5 text-[9px] font-bold uppercase border-none rounded-[4px] flex items-center w-fit space-x-1 shadow-sm cursor-pointer hover:opacity-80 transition-opacity",
+                                        user.status === "Active" ? "bg-green-100/50 text-green-700" : "bg-red-100/50 text-red-700"
+                                    )}
+                                >
                                     {user.status === "Active" ? <CheckCircle2 className="w-2.5 h-2.5" /> : <AlertCircle className="w-2.5 h-2.5" />}
                                     <span>{user.status}</span>
                                 </Badge>
                             </TableCell>
                             <TableCell className="px-6 text-right whitespace-nowrap">
                                 <div className="flex items-center justify-end space-x-2">
+                                    {/* View Details */}
                                     <button
-                                        onClick={() => { setSelectedUser(user); setIsModalOpen(true); }}
+                                        onClick={() => { setSelectedUser(user); setIsDetailsOpen(true); }}
+                                        title="View Profile Details"
                                         className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded-[4px] border border-gray-100 shadow-sm transition-all text-[#B2BEC3] hover:border-blue-200"
                                     >
                                         <Eye className="w-3.5 h-3.5" />
                                     </button>
+                                    {/* Edit Profile */}
                                     <button
-                                        onClick={() => { setSelectedUser(user); setIsModalOpen(true); }}
+                                        onClick={() => { setSelectedUser(user); setIsDetailsOpen(true); }}
+                                        title="Edit User Profile"
                                         className="p-1.5 hover:bg-green-50 hover:text-green-600 rounded-[4px] border border-gray-100 shadow-sm transition-all text-[#B2BEC3] hover:border-green-200"
                                     >
                                         <Pencil className="w-3.5 h-3.5" />
                                     </button>
+                                    {/* Delete User */}
                                     <button
+                                        onClick={() => setUserToDelete(user)}
+                                        title="Delete User"
                                         className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-[4px] border border-gray-100 shadow-sm transition-all text-[#B2BEC3] hover:border-red-200"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -159,14 +194,53 @@ export function UserTable({ users, isLoading }: UserTableProps) {
                 </TableBody>
             </Table>
 
+            {/* View/Edit User Modal */}
             <UserDetailsModal
                 user={selectedUser}
-                isOpen={isModalOpen}
+                isOpen={isDetailsOpen}
                 onClose={() => {
-                    setIsModalOpen(false);
-                    setTimeout(() => setSelectedUser(null), 200); // clear after animation
+                    setIsDetailsOpen(false);
+                    setTimeout(() => setSelectedUser(null), 200);
+                }}
+                onUserUpdated={() => {
+                    if (onUsersChanged) onUsersChanged();
                 }}
             />
+
+            {/* Delete Confirmation Popup Dialog */}
+            <Dialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+                <DialogContent showCloseButton={false} className="sm:max-w-[420px] p-6 bg-white rounded-xl shadow-2xl font-sans">
+                    <DialogHeader className="flex flex-col items-center text-center space-y-2">
+                        <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-1">
+                            <AlertTriangle className="w-6 h-6" />
+                        </div>
+                        <DialogTitle className="text-lg font-bold text-gray-900">Delete User Account?</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="py-2 text-center text-xs text-gray-600 space-y-1">
+                        <p>Are you sure you want to permanently delete user account:</p>
+                        <p className="font-bold text-gray-900 text-sm">{userToDelete?.name} ({userToDelete?.id})</p>
+                        <p className="text-red-500 font-semibold pt-1">This action cannot be undone.</p>
+                    </div>
+
+                    <div className="flex items-center space-x-3 pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setUserToDelete(null)}
+                            className="flex-1 h-10 rounded-[6px] border-gray-200 text-gray-700 font-bold text-xs"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleConfirmDelete}
+                            disabled={isDeleting}
+                            className="flex-1 h-10 rounded-[6px] bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm"
+                        >
+                            {isDeleting ? "Deleting..." : "Delete User"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

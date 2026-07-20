@@ -1,21 +1,19 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-import { DashboardStats } from "@/services/user.service";
+import { CollectorSummary } from "@/services/dashboard.service";
 
 interface ActiveCollectorsProps {
-    stats: DashboardStats | null;
+    collectors?: CollectorSummary[];
     isLoading: boolean;
 }
 
-export function ActiveCollectors({ stats, isLoading }: ActiveCollectorsProps) {
-    const collectors = stats?.activeCollectors || [];
+export function ActiveCollectors({ collectors = [], isLoading }: ActiveCollectorsProps) {
     return (
         <Card className="border border-gray-100 shadow-sm">
             <CardHeader className="pb-4 pt-6 px-8 flex flex-row items-center justify-between space-y-0">
@@ -58,4 +56,3 @@ export function ActiveCollectors({ stats, isLoading }: ActiveCollectorsProps) {
         </Card>
     );
 }
-

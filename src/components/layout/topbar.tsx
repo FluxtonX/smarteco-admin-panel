@@ -41,7 +41,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
         notificationService.getNotifications()
             .then((data) => setNotifications(data))
-            .catch(() => {});
+            .catch(() => { });
 
         systemService.checkHealth()
             .then(res => {
@@ -54,7 +54,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             .catch(() => setSystemStatus("DOWN"));
     }, []);
 
-    const unreadCount = notifications.filter(n => !n.isRead).length; 
+    const unreadCount = notifications.filter(n => !n.isRead).length;
 
     const displayName = profile
         ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "Admin"
@@ -82,18 +82,8 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                     <Menu className="h-6 w-6 text-gray-600" />
                 </Button>
 
-                {/* Search Bar */}
-                <div className="hidden sm:block flex-1 max-w-sm md:max-w-md">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                            placeholder="Search users, pickups..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white transition-all text-sm w-full"
-                        />
-                    </div>
-                </div>
+
+
             </div>
 
             {/* Right Actions Section */}

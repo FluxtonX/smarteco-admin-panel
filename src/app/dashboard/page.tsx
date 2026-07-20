@@ -9,32 +9,58 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { AlertsNotifications } from "@/components/dashboard/alerts-notifications";
 import { Users, Truck, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { LiveStatus } from "@/components/ui/live-status";
-import { dashboardService, Stat } from "@/services/dashboard.service";
+import {
+    dashboardService,
+    Stat,
+    Activity,
+    CollectorSummary,
+    PickupTrendPoint
+} from "@/services/dashboard.service";
 
 export default function DashboardPage() {
     const [currentTime, setCurrentTime] = useState<string>("");
     const [stats, setStats] = useState<Stat[]>([]);
-    const [recentActivity, setRecentActivity] = useState<any[]>([]);
+    const [pickupTrends, setPickupTrends] = useState<PickupTrendPoint[]>([]);
+    const [wasteStats, setWasteStats] = useState<Record<string, number>>({});
+    const [collectors, setCollectors] = useState<CollectorSummary[]>([]);
+    const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setCurrentTime(new Date().toLocaleTimeString());
-        
-        async function loadStats() {
+
+        async function loadDashboardData(showLoading = true) {
+            if (showLoading) setIsLoading(true);
             try {
-                const [data, activity] = await Promise.all([
+                const [statsData, trendsData, wasteData, collectorsData, activityData] = await Promise.all([
                     dashboardService.getStats(),
-                    dashboardService.getRecentActivity()
+                    dashboardService.getPickupTrends(),
+                    dashboardService.getWasteDistribution(),
+                    dashboardService.getActiveCollectors(),
+                    dashboardService.getRecentActivity(),
                 ]);
-                setStats(data);
-                setRecentActivity(activity);
+
+                setStats(statsData);
+                setPickupTrends(trendsData);
+                setWasteStats(wasteData);
+                setCollectors(collectorsData);
+                setRecentActivity(activityData);
+                setCurrentTime(new Date().toLocaleTimeString());
             } catch (error) {
-                console.error("Failed to load stats:", error);
+                console.error("Failed to load dashboard data:", error);
             } finally {
                 setIsLoading(false);
             }
         }
-        loadStats();
+
+        loadDashboardData(true);
+
+        // Auto-refresh dynamic data every 10 seconds for real-time updates
+        const intervalId = setInterval(() => {
+            loadDashboardData(false);
+        }, 10000);
+
+        return () => clearInterval(intervalId);
     }, []);
 
     const getIcon = (title: string) => {
@@ -58,13 +84,13 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1600px] mx-auto">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
             {/* Header Section */}
             <div className="flex flex-row items-center justify-between gap-4">
                 <div className="min-w-0">
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight leading-tight truncate">Dashboard</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight leading-tight truncate">Operations Dashboard</h1>
                     <p className="text-[10px] md:text-sm text-gray-500 font-medium mt-1 truncate">
-                        Real-time analytics <span className="hidden xs:inline">•</span>
+                        Real-time Kigali SmartEco Operations Analytics <span className="hidden xs:inline">•</span>
                         <span className="text-gray-400 font-normal ml-1 hidden xs:inline">
                             {currentTime ? `Last updated: ${currentTime}` : "Loading timestamp..."}
                         </span>
@@ -97,15 +123,15 @@ export default function DashboardPage() {
                 )}
             </div>
 
-            {/* Charts Grid - Equalized columns */}
+            {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <PickupChart data={undefined} isLoading={isLoading} />
-                <WasteChart stats={undefined} isLoading={isLoading} />
+                <PickupChart data={pickupTrends} isLoading={isLoading} />
+                <WasteChart stats={wasteStats} isLoading={isLoading} />
             </div>
 
-            {/* Details Grid - Equalized columns */}
+            {/* Details Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ActiveCollectors stats={null} isLoading={isLoading} />
+                <ActiveCollectors collectors={collectors} isLoading={isLoading} />
                 <RecentActivity activities={recentActivity} isLoading={isLoading} />
             </div>
 

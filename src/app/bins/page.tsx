@@ -10,6 +10,8 @@ import { AssignmentLogs } from "@/components/bins/assignment-logs";
 import { LiveStatus } from "@/components/ui/live-status";
 
 
+import { BinMap } from "@/components/bins/bin-map";
+import { BinDetailsModal } from "@/components/bins/bin-details-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown, MapPin, FileText, Download, AlertCircle, Clock, Activity, ClipboardList } from "lucide-react";
@@ -25,6 +27,9 @@ export default function SmartBinManagementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Active Alerts");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedBinForModal, setSelectedBinForModal] = useState<BinRecord | null>(null);
+    const [isBinModalOpen, setIsBinModalOpen] = useState(false);
+    const [isMockDataMode, setIsMockDataMode] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -57,7 +62,7 @@ export default function SmartBinManagementPage() {
     );
 
     const tabs = [
-        { name: "Over view", icon: Search },
+        { name: "Overview", icon: Search },
         { name: "Active Alerts", count: stats?.alerts || 0, icon: AlertCircle },
         { name: "Sensor Data", icon: Clock },
         { name: "Assignment Logs", icon: FileText },
@@ -138,32 +143,22 @@ export default function SmartBinManagementPage() {
                         </div>
                     )}
 
-                    {activeTab === "Over view" && (
+                    {activeTab === "Overview" && (
                         <div className="space-y-8 transition-all animate-in fade-in duration-500">
                             <BinStats stats={stats} />
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-[16px] font-bold text-[#1A1A1A] tracking-tight">Smart bin locations</h2>
                                 </div>
-                                <div className="w-full h-[350px] bg-white border border-gray-100 rounded-[8px] shadow-sm relative overflow-hidden group cursor-pointer">
-                                    <div className="absolute inset-0 bg-[#f1f3f4] flex items-center justify-center">
-                                        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                                        <div className="relative flex flex-col items-center">
-                                            <div className="w-12 h-12 bg-primary-green/10 rounded-full flex items-center justify-center animate-pulse">
-                                                <MapPin className="w-6 h-6 text-primary-green" />
-                                            </div>
-                                            <span className="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Interactive Map Interface</span>
-                                        </div>
-                                    </div>
-                                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center pointer-events-none">
-                                        <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-[4px] border border-gray-100 shadow-sm">
-                                            <span className="text-[10px] font-bold text-gray-600">Viewing: Kigali City Central Hub</span>
-                                        </div>
-                                        <Button variant="secondary" size="sm" className="h-7 bg-[#15803D] text-white hover:bg-[#166534] text-[10px] font-bold px-3 rounded-[4px] shadow-md pointer-events-auto">
-                                            RE-CENTER MAP
-                                        </Button>
-                                    </div>
-                                </div>
+                                <BinMap
+                                    bins={filteredBinsBySearch}
+                                    onSelectBin={(bin) => {
+                                        setSelectedBinForModal(bin);
+                                        setIsBinModalOpen(true);
+                                    }}
+                                    onToggleDataSource={(useMock) => setIsMockDataMode(useMock)}
+                                    isUsingMockData={isMockDataMode}
+                                />
                                 <div className="overflow-x-auto">
                                     <BinTable
                                         bins={filteredBinsBySearch}
@@ -184,6 +179,11 @@ export default function SmartBinManagementPage() {
 
                 </main>
             </div>
+            <BinDetailsModal
+                bin={selectedBinForModal}
+                isOpen={isBinModalOpen}
+                onClose={() => setIsBinModalOpen(false)}
+            />
         </div>
     );
 }
