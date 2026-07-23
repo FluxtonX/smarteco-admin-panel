@@ -1,11 +1,4 @@
-/**
- * Referral Service — Real API Integration
- * Calls GET /api/v1/users/me/referral
- */
-
 import { apiGet } from '@/lib/api-client';
-
-// ─── Frontend display interfaces (used by referral page components) ───────────
 
 export interface ReferralStat {
     label: string;
@@ -33,8 +26,6 @@ export interface ReferralRecord {
     date: string;
 }
 
-// ─── Backend response shape ───────────────────────────────────────────────────
-
 interface ReferredUser {
     firstName: string | null;
     lastName: string | null;
@@ -55,22 +46,25 @@ interface GetReferralInfoResponse {
     data: ReferralInfoData;
 }
 
-// ─── Service ─────────────────────────────────────────────────────────────────
-
 export const referralService = {
-    /**
-     * GET /api/v1/users/me/referral
-     * Fetches referral code, link, counts, points earned and list of referred users.
-     * Maps the backend response into the display interfaces expected by the UI components.
-     */
     async getReferralData(): Promise<GetReferralInfoResponse['data']> {
-        const res = await apiGet<GetReferralInfoResponse>('/users/me/referral');
-        return res.data;
+        try {
+            const res = await apiGet<GetReferralInfoResponse>('/users/me/referral');
+            if (res.success && res.data && Array.isArray(res.data.referredUsers)) {
+                return res.data;
+            }
+        } catch (e) {
+            console.warn("Backend /users/me/referral unreached:", e);
+        }
+        return {
+            referralCode: "N/A",
+            referralLink: "",
+            totalReferred: 0,
+            pointsEarned: 0,
+            referredUsers: []
+        };
     },
 
-    /**
-     * Returns summary stat cards mapped from the live API response.
-     */
     async getStats(): Promise<ReferralStat[]> {
         const data = await this.getReferralData();
 
@@ -116,14 +110,9 @@ export const referralService = {
         ];
     },
 
-    /**
-     * Returns weekly performance chart data.
-     * Groups referred users by their join week (last 4 weeks).
-     */
     async getPerformance(): Promise<ReferralPerformanceData[]> {
         const data = await this.getReferralData();
 
-        // Build 4-week buckets from today backwards
         const now = new Date();
         const weeks: ReferralPerformanceData[] = Array.from({ length: 4 }, (_, i) => ({
             week: `Week ${i + 1}`,
@@ -135,7 +124,7 @@ export const referralService = {
             const joined = new Date(user.joinedAt);
             const diffDays = Math.floor((now.getTime() - joined.getTime()) / (1000 * 60 * 60 * 24));
             const weekIndex = Math.min(Math.floor(diffDays / 7), 3);
-            const slot = 3 - weekIndex; // most recent = Week 4
+            const slot = 3 - weekIndex;
             if (slot >= 0 && slot < 4) {
                 weeks[slot].referrals += 1;
                 if (user.firstPickupCompleted) weeks[slot].bonus += 100;
@@ -145,9 +134,6 @@ export const referralService = {
         return weeks;
     },
 
-    /**
-     * Returns table rows for the referred users list.
-     */
     async getReferrals(): Promise<ReferralRecord[]> {
         const data = await this.getReferralData();
 

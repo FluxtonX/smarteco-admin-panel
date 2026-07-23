@@ -59,7 +59,7 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
     const handleSaveChanges = async () => {
         setIsSaving(true);
         const rawId = user.rawId || user.id;
-        await userService.updateUserAdmin(rawId, formData);
+        await userService.updateUser(rawId, formData);
         const updated: UserRecord = { ...user, ...formData };
         if (onUserUpdated) onUserUpdated(updated);
         setIsEditing(false);

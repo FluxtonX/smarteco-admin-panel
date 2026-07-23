@@ -18,9 +18,10 @@ import { BinDetailsModal } from "./bin-details-modal";
 interface BinTableProps {
     bins: BinRecord[];
     isLoading: boolean;
+    onBinUpdated?: () => void;
 }
 
-export function BinTable({ bins, isLoading }: BinTableProps) {
+export function BinTable({ bins, isLoading, onBinUpdated }: BinTableProps) {
     const [selectedBin, setSelectedBin] = useState<BinRecord | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -134,6 +135,7 @@ export function BinTable({ bins, isLoading }: BinTableProps) {
                 bin={selectedBin}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                onBinUpdated={onBinUpdated}
             />
         </div>
     );

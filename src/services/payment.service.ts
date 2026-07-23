@@ -31,7 +31,6 @@ export interface TransactionRecord {
     webhook: 'Delivered' | 'Pending' | 'Failed';
 }
 
-// Backend Type Shape
 interface PaymentApiResponse {
     success: boolean;
     data: any[];
@@ -45,25 +44,22 @@ interface PaymentPayload {
 }
 
 export const paymentService = {
-    /** POST /api/v1/payments */
     initiatePayment: async (payload: PaymentPayload) => {
         return apiPost('/payments', payload);
     },
 
-    /** GET /api/v1/payments/{id}/status */
     checkPaymentStatus: async (paymentId: string) => {
         return apiGet(`/payments/${paymentId}/status`);
     },
 
-    /** POST /api/v1/payments/webhook/* */
     simulateMomoWebhook: async (payload: any) => {
         return apiPost('/payments/webhook/momo', payload);
     },
+
     simulateAirtelWebhook: async (payload: any) => {
         return apiPost('/payments/webhook/airtel', payload);
     },
 
-    /** GET /api/v1/payments */
     getTransactions: async (): Promise<TransactionRecord[]> => {
         try {
             const res = await apiGet<PaymentApiResponse>('/payments');
@@ -71,84 +67,121 @@ export const paymentService = {
                 return res.data.map((txn: any) => ({
                     id: txn.id || `TXN-${Math.floor(Math.random() * 99999)}`,
                     momoId: txn.transactionId || 'MOMO-PENDING',
-                    user: txn.user?.name || txn.phone || 'Anonymous',
+                    user: txn.user ? `${txn.user.firstName || ''} ${txn.user.lastName || ''}`.trim() || txn.user.phone : (txn.phone || 'Anonymous'),
                     amount: `${(txn.amount || 0).toLocaleString()} RWF`,
                     method: String(txn.method).toLowerCase().includes('airtel') ? 'Airtel Money' : 'MTN MoMo',
-                    status: (txn.status === 'SUCCESS' ? 'Completed' : 
-                             txn.status === 'FAIL' ? 'Failed' : 
+                    status: (txn.status === 'SUCCESS' || txn.status === 'COMPLETED' ? 'Completed' : 
+                             txn.status === 'FAIL' || txn.status === 'FAILED' ? 'Failed' : 
                              txn.status === 'PENDING' ? 'Pending' : 'Completed') as any,
-                    timestamp: txn.createdAt || new Date().toISOString(),
-                    webhook: txn.status === 'SUCCESS' ? 'Delivered' : 'Pending'
+                    timestamp: txn.createdAt ? new Date(txn.createdAt).toISOString().slice(0, 16).replace('T', ' ') : new Date().toISOString(),
+                    webhook: (txn.status === 'SUCCESS' || txn.status === 'COMPLETED') ? 'Delivered' : 'Pending'
                 }));
             }
         } catch (e) {
-            console.error("Failed to fetch live payments API natively", e);
+            console.error("Backend /payments unreached:", e);
         }
-        
-        // Return structured visual fallback if no records exist on backend yet
-        return [
-            { id: "TXN-001234", momoId: "MOMO-123456", user: "Jean Pierre", amount: "2,500 RWF", method: "MTN MoMo", status: "Completed", timestamp: "2024-02-24 09:15", webhook: "Delivered" },
-            { id: "TXN-001237", momoId: "AIRTEL-456789", user: "Aline Mutoni", amount: "1,200 RWF", method: "Airtel Money", status: "Failed", timestamp: "2024-02-24 11:00", webhook: "Failed" },
-        ];
+        return [];
     },
 
     getStats: async (): Promise<PaymentStat[]> => {
+        let totalRevenueVal = 0;
+        let successfulCount = 0;
+        let failedCount = 0;
+        let pendingCount = 0;
+
         try {
             const res = await apiGet<{ success: boolean; data: any }>('/admin/analytics/revenue');
             if (res.success && res.data) {
                 const d = res.data;
-                return [
-                    { label: "Total Revenue", value: `${(d.totalAmount || 0).toLocaleString()} RWF`, trend: `${d.growth || 0}%`, trendType: (d.growth || 0) >= 0 ? "up" : "down", iconType: "revenue", subtext: "Live revenue" },
-                    { label: "Successful", value: (d.successfulCount || 0).toString(), trend: "98%", trendType: "up", iconType: "success", subtext: "payment success" },
-                    { label: "Failed", value: (d.failedCount || 0).toString(), trend: "2%", trendType: "down", iconType: "failed", subtext: "Requires attention" },
-                    { label: "Pending", value: (d.pendingCount || 0).toString(), trend: "", trendType: "up", iconType: "pending", subtext: "" },
-                ];
+                totalRevenueVal = d.totalRevenueRWF ?? d.totalAmount ?? 0;
+                successfulCount = d.totalTransactions ?? d.successfulCount ?? 0;
+            }
+        } catch (e) {}
+
+        try {
+            if (totalRevenueVal === 0) {
+                const dashRes = await apiGet<{ success: boolean; data: any }>('/admin/dashboard');
+                if (dashRes.success && dashRes.data?.revenue?.totalRWF) {
+                    totalRevenueVal = dashRes.data.revenue.totalRWF;
+                }
             }
         } catch (e) {}
 
         const liveTxns = await paymentService.getTransactions();
-        const successCount = liveTxns.filter(t => t.status === 'Completed').length;
-        const failCount = liveTxns.filter(t => t.status === 'Failed').length;
-        const pendingCount = liveTxns.filter(t => t.status === 'Pending').length;
-        
-        const totalRaw = liveTxns.reduce((acc, curr) => {
+        const completedTxns = liveTxns.filter(t => t.status === 'Completed');
+        const calculatedSum = completedTxns.reduce((acc, curr) => {
             const val = parseInt(curr.amount.replace(/\D/g, '')) || 0;
             return acc + val;
         }, 0);
 
+        if (successfulCount === 0) {
+            successfulCount = completedTxns.length;
+        }
+        failedCount = liveTxns.filter(t => t.status === 'Failed').length;
+        pendingCount = liveTxns.filter(t => t.status === 'Pending').length;
+
+        if (totalRevenueVal === 0 && calculatedSum > 0) {
+            totalRevenueVal = calculatedSum;
+        }
+
         return [
-            { label: "Total Revenue", value: `${(totalRaw || 3700).toLocaleString()} RWF`, trend: "+12%", trendType: "up", iconType: "revenue", subtext: "based on tracking" },
-            { label: "Successful Transactions", value: `${successCount}`, trend: "Live", trendType: "up", iconType: "success", subtext: "success rate" },
-            { label: "Failed Transactions", value: `${failCount}`, trend: "Requires", trendType: "down", iconType: "failed", subtext: "attention" },
-            { label: "Pending", value: `${pendingCount}`, trend: "", trendType: "up", iconType: "pending", subtext: "" },
+            {
+                label: "Total Revenue",
+                value: `${totalRevenueVal.toLocaleString()} RWF`,
+                trend: "Live",
+                trendType: "up",
+                iconType: "revenue",
+                subtext: "Live revenue"
+            },
+            {
+                label: "Successful",
+                value: `${successfulCount}`,
+                trend: "100%",
+                trendType: "up",
+                iconType: "success",
+                subtext: "payment success"
+            },
+            {
+                label: "Failed",
+                value: `${failedCount}`,
+                trend: "0%",
+                trendType: "down",
+                iconType: "failed",
+                subtext: "Requires attention"
+            },
+            {
+                label: "Pending",
+                value: `${pendingCount}`,
+                trend: "0",
+                trendType: "up",
+                iconType: "pending",
+                subtext: "In verification"
+            },
         ];
     },
 
     getRevenueByDay: async (): Promise<RevenueDayData[]> => {
+        const daysMap: Record<string, number> = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
         try {
             const res = await apiGet<{ success: boolean; data: any }>('/admin/analytics/revenue');
-            if (res.success && res.data && res.data.dailyRevenue) {
-                return res.data.dailyRevenue; // Assuming backend returns { day: string, amount: number }
+            if (res.success && res.data && Array.isArray(res.data.dailyRevenue) && res.data.dailyRevenue.length > 0) {
+                return res.data.dailyRevenue;
             }
         } catch (e) {}
-        return [
-            { day: "Mon", amount: 450000 },
-            { day: "Tue", amount: 520000 },
-            { day: "Wed", amount: 680000 },
-            { day: "Thu", amount: 600000 },
-            { day: "Fri", amount: 720000 },
-            { day: "Sat", amount: 880000 },
-            { day: "Sun", amount: 620000 },
-        ];
+
+        return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => ({
+            day,
+            amount: daysMap[day] || 0
+        }));
     },
 
     getRevenueByWaste: async (): Promise<RevenueWasteData[]> => {
         return [
-            { name: "Organic", value: 34, color: "#22C55E" },
-            { name: "Recyclable", value: 26, color: "#3B82F6" },
-            { name: "E-Waste", value: 17, color: "#8B5CF6" },
-            { name: "Glass", value: 12, color: "#10B981" },
-            { name: "Hazardous", value: 11, color: "#EF4444" },
+            { name: "Organic", value: 40, color: "#22C55E" },
+            { name: "Recyclable", value: 30, color: "#3B82F6" },
+            { name: "E-Waste", value: 15, color: "#8B5CF6" },
+            { name: "Glass", value: 10, color: "#10B981" },
+            { name: "Hazardous", value: 5, color: "#EF4444" },
         ];
     }
 };

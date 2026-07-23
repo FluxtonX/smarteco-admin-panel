@@ -22,21 +22,21 @@ export default function LoginPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
-    
+
     setIsLoading(true);
     try {
-        const response = await authService.adminLogin(email, password);
-        if (response.success && response.data.accessToken) {
-            localStorage.setItem("smarteco_token", response.data.accessToken);
-            router.push("/dashboard");
-        } else {
-            setAuthError("Authentication failed. No access token received.");
-        }
+      const response = await authService.adminLogin(email, password);
+      if (response.success && response.data.accessToken) {
+        localStorage.setItem("smarteco_token", response.data.accessToken);
+        router.push("/dashboard");
+      } else {
+        setAuthError("Authentication failed. No access token received.");
+      }
     } catch (error: any) {
-        setAuthError(error.message || "Failed to login. Please check your credentials.");
-        console.error(error);
+      setAuthError(error.message || "Failed to login. Please check your credentials.");
+      console.error(error);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -58,10 +58,8 @@ export default function LoginPage() {
         </div>
 
         <Card className="border shadow-md overflow-hidden">
-          {/* Header Bar */}
-          <div className="bg-[#145A32] text-white py-2 text-center text-xs font-semibold tracking-wide px-4">
-            Government of Rwanda • Ministry of Environment
-          </div>
+
+
 
           <CardHeader className="space-y-1 pt-6 px-8">
             <div className="space-y-4">
@@ -75,11 +73,11 @@ export default function LoginPage() {
                 <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input 
-                    id="email" 
+                  <Input
+                    id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@smarteco.rw" 
+                    placeholder="admin@smarteco.rw"
                     className="pl-10 bg-gray-50 border-gray-200 focus:ring-[#1E8449] focus:border-[#1E8449]"
                   />
                 </div>
@@ -89,15 +87,15 @@ export default function LoginPage() {
                 <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password" 
+                    placeholder="Enter your password"
                     className="pl-10 pr-10 bg-gray-50 border-gray-200 focus:ring-[#1E8449] focus:border-[#1E8449]"
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -120,7 +118,7 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="px-8 pb-4">
-            <Button 
+            <Button
               onClick={handleSignIn}
               disabled={isLoading}
               className="w-full bg-[#1E8449] hover:bg-[#145A32] text-white font-bold py-6 rounded-md shadow-sm transition-all duration-200 disabled:opacity-70"
@@ -136,7 +134,7 @@ export default function LoginPage() {
         {/* Footer Info */}
         <div className="text-center space-y-2 pt-4">
           <p className="text-xs text-gray-500 font-medium">
-            SmartEco Admin Portal © 2026 • Government of Rwanda
+            SmartEco Admin Portal © 2026
           </p>
           <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
             <div className="flex items-center">

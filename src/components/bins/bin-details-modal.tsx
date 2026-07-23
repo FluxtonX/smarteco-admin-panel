@@ -1,166 +1,169 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X, AlertTriangle, Truck, CheckCircle2, UserCheck } from "lucide-react";
+import { BinRecord, binService } from "@/services/bin.service";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BinRecord } from "@/services/bin.service";
 import { cn } from "@/lib/utils";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
-import { X, Calendar, User, MapPin } from "lucide-react";
 
 interface BinDetailsModalProps {
     bin: BinRecord | null;
     isOpen: boolean;
     onClose: () => void;
+    onBinUpdated?: () => void;
 }
 
-export function BinDetailsModal({ bin, isOpen, onClose }: BinDetailsModalProps) {
-    const [mounted, setMounted] = useState(false);
+const AVAILABLE_COLLECTORS = [
+    { id: "COL-001", name: "Patrick Mugisha", status: "On Delivery" },
+    { id: "COL-002", name: "Jean Claude Habimana", status: "Available" },
+    { id: "COL-003", name: "Divine Uwase", status: "Available" },
+    { id: "COL-004", name: "Eric Nshimiyimana", status: "On Delivery" },
+];
+
+export function BinDetailsModal({ bin, isOpen, onClose, onBinUpdated }: BinDetailsModalProps) {
+    const [selectedCollector, setSelectedCollector] = useState<string>("Patrick Mugisha");
+    const [isAssigning, setIsAssigning] = useState(false);
+    const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(null);
+
     useEffect(() => {
-        if (isOpen) {
-            setMounted(true);
-        } else {
-            setMounted(false);
+        if (bin) {
+            if (bin.collector && bin.collector !== "Unassigned") {
+                setSelectedCollector(bin.collector);
+            } else {
+                setSelectedCollector("Patrick Mugisha");
+            }
+            setAssignmentSuccess(null);
         }
-    }, [isOpen]);
+    }, [bin]);
 
     if (!bin) return null;
 
+    const handleTriggerAssignment = async () => {
+        setIsAssigning(true);
+        try {
+            const res = await binService.assignCollector(bin.id, selectedCollector);
+            setAssignmentSuccess(`Successfully assigned ${res.collector} to ${bin.id}!`);
+            if (onBinUpdated) onBinUpdated();
+            setTimeout(() => {
+                setAssignmentSuccess(null);
+            }, 3000);
+        } catch (error) {
+            console.error("Assignment failed:", error);
+        } finally {
+            setIsAssigning(false);
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent showCloseButton={false} className="sm:max-w-[750px] w-[95%] max-h-[90vh] p-0 overflow-hidden border-none rounded-[12px] bg-[#FFFFFF] shadow-2xl font-sans fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col">
-                {/* Close Button Pin */}
-                <button
-                    onClick={onClose}
-                    className="absolute right-6 top-6 p-1 rounded-full hover:bg-gray-100 transition-colors z-10"
-                >
-                    <X className="w-5 h-5 text-gray-400" />
-                </button>
-
-                {/* Modal Header Area */}
-                <header className="px-10 pt-10 pb-4 bg-white shrink-0">
-                    <div className="space-y-4">
-                        <h2 className="text-[18px] font-bold text-[#1A1A1A] tracking-tight leading-none uppercase">{bin.id} - Details</h2>
-
-                        <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-[#636E72] uppercase tracking-tight">Owner</span>
-                            <div className="text-[16px] font-bold text-[#1A1A1A] leading-tight">{bin.user.name}</div>
-                            <p className="text-[12px] font-medium text-[#636E72]">{bin.user.address} • Kigali North</p>
-                        </div>
+            <DialogContent showCloseButton={false} className="sm:max-w-[480px] p-6 bg-white border-0 shadow-2xl overflow-hidden rounded-[16px] h-auto flex flex-col font-sans">
+                {/* Header */}
+                <DialogHeader className="p-0 flex flex-row items-center justify-between pb-4 border-b border-[#F1F5F9]">
+                    <div className="space-y-1">
+                        <DialogTitle className="text-xl font-extrabold text-[#0F172A] tracking-tight flex items-center gap-2">
+                            <span>Smart Bin {bin.id}</span>
+                        </DialogTitle>
+                        <p className="text-[12px] font-semibold text-[#64748B]">Real-time telemetry and collector assignment</p>
                     </div>
-                </header>
+                    <button onClick={onClose} className="p-1.5 hover:bg-[#F1F5F9] rounded-full text-[#94A3B8] hover:text-[#0F172A] transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </DialogHeader>
 
-                <div className="px-10 pb-8 pt-2 space-y-6 overflow-y-auto">
-                    {/* Horizontal Stats Row - Compact Height (Reduced ~25%) */}
-                    <div className="grid grid-cols-3 gap-4">
-                        {/* Fill Level Card */}
-                        <div className="bg-[#FFF1F2] border border-[#FFE4E6] rounded-[6px] py-3.5 px-4 flex flex-col items-center justify-center space-y-1">
-                            <span className="text-[9px] font-bold text-[#E11D48] uppercase tracking-widest">Fill Level</span>
-                            <span className="text-[24px] font-bold text-[#E11D48] tracking-tighter leading-none">{bin.fillLevel}%</span>
-                        </div>
-
-                        {/* Bin Type Card */}
-                        <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-[6px] py-3.5 px-4 flex flex-col items-center justify-center space-y-1">
-                            <span className="text-[9px] font-bold text-[#2563EB] uppercase tracking-widest">Bin Type</span>
-                            <span className="text-[14px] font-bold text-[#2563EB] tracking-tight leading-none uppercase">Organic</span>
-                        </div>
-
-                        {/* Last Emptied Card */}
-                        <div className="bg-[#F9FAFB] border border-[#F3F4F6] rounded-[6px] py-3.5 px-4 flex flex-col items-center justify-center space-y-1 text-center">
-                            <span className="text-[9px] font-bold text-[#4B5563] uppercase tracking-widest">Last Emptied</span>
-                            <span className="text-[12px] font-bold text-[#1F2937] leading-tight">{bin.lastEmptied}</span>
-                        </div>
+                {/* Body Content */}
+                <div className="py-4 space-y-5">
+                    {/* User & Location Header Box */}
+                    <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px] p-3.5 space-y-1">
+                        <div className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Owner / Location</div>
+                        <div className="text-[14px] font-bold text-[#0F172A]">{bin.user.name}</div>
+                        <div className="text-[12px] font-medium text-[#475569]">{bin.user.address}</div>
                     </div>
 
-                    {/* Chart Section */}
-                    <div className="space-y-4">
-                        <h3 className="text-[14px] font-bold text-[#1A1A1A] tracking-tight whitespace-nowrap">Fill Level History (24h)</h3>
-                        <div className="h-[200px] w-full bg-[#FFFFFF] relative pr-6 pb-2">
-                            {mounted ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={bin.history} margin={{ top: 5, right: 5, bottom: 20, left: -30 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                        <XAxis
-                                            dataKey="time"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 9, fill: '#636E72', fontWeight: 500 }}
-                                            dy={10}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            stroke="#E5E7EB"
-                                            tickLine={false}
-                                            tick={{ fontSize: 9, fill: '#636E72', fontWeight: 500 }}
-                                            domain={[0, 100]}
-                                            ticks={[0, 25, 50, 75, 100]}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{
-                                                backgroundColor: '#fff',
-                                                borderRadius: '8px',
-                                                border: '1px solid #E5E7EB',
-                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                                padding: '8px'
-                                            }}
-                                            labelStyle={{ fontSize: '9px', color: '#636E72', marginBottom: '4px' }}
-                                            itemStyle={{ fontSize: '10px', fontWeight: '800', color: '#15803D' }}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="level"
-                                            stroke="#15803D"
-                                            strokeWidth={2}
-                                            dot={{ fill: '#15803D', r: 3, stroke: '#fff', strokeWidth: 1.5 }}
-                                            activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-50/50 rounded-lg">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
-                                </div>
-                            )}
+                    {/* Progress Level Card */}
+                    <div className="bg-white border border-[#E2E8F0] rounded-[10px] p-4 shadow-sm space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Fill Level Capacity</span>
+                            <span className={cn(
+                                "text-base font-extrabold",
+                                bin.fillLevel >= 90 ? "text-[#E11D48]" : bin.fillLevel >= 75 ? "text-[#D97706]" : "text-[#16A34A]"
+                            )}>{bin.fillLevel}%</span>
+                        </div>
+                        <div className="w-full h-3 bg-[#F1F5F9] rounded-full overflow-hidden">
+                            <div
+                                className={cn(
+                                    "h-full transition-all duration-500 rounded-full",
+                                    bin.fillLevel >= 90 ? "bg-[#EF4444]" : bin.fillLevel >= 75 ? "bg-[#F59E0B]" : "bg-[#10B981]"
+                                )}
+                                style={{ width: `${bin.fillLevel}%` }}
+                            />
                         </div>
                     </div>
 
-                    {/* Bottom Info Cards Section - Light Gray with Shadow */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-[#F8FAFC] border border-[#EDF2F7] rounded-[8px] p-3 shadow-sm flex flex-col items-center space-y-1">
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 shadow-sm flex flex-col items-center space-y-1">
                             <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest text-center">Alert Status</span>
                             <Badge className={cn(
                                 "px-3 py-0.5 rounded-[4px] text-[9px] font-bold uppercase tracking-wider border-none shadow-none text-center min-w-[70px] flex justify-center",
+                                bin.alertStatus === 'Critical' ? "bg-[#FFE4E6] text-[#E11D48]" :
                                 bin.alertStatus === 'Full' ? "bg-[#FFE4E6] text-[#E11D48]" :
-                                    bin.alertStatus === 'Nearly Full' ? "bg-[#FEF3C7] text-[#D97706]" : "bg-[#DCFCE7] text-[#16A34A]"
+                                bin.alertStatus === 'Nearly Full' ? "bg-[#FEF3C7] text-[#D97706]" : "bg-[#DCFCE7] text-[#16A34A]"
                             )}>
-                                {bin.alertStatus === 'Nearly Full' ? 'N. Full' : bin.alertStatus}
+                                {bin.alertStatus}
                             </Badge>
                         </div>
-                        <div className="bg-[#F8FAFC] border border-[#EDF2F7] rounded-[8px] p-3 shadow-sm flex flex-col items-center space-y-1 text-center">
-                            <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest text-center">Assigned Collector</span>
-                            <div className="text-[13px] font-bold text-[#1A1A1A] tracking-tight">{bin.collector}</div>
+                        <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 shadow-sm flex flex-col items-center space-y-1 text-center">
+                            <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest text-center">Current Collector</span>
+                            <div className="text-[12px] font-bold text-[#0F172A] truncate w-full">{bin.collector}</div>
                         </div>
                     </div>
 
-                    {/* Footer Actions - Narrower Style */}
-                    <div className="flex items-center gap-4 pt-2 shrink-0">
+                    {/* Assign Collector Selector Section */}
+                    <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-[10px] p-3.5 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-[#166534] uppercase tracking-wider flex items-center gap-1.5">
+                                <Truck className="w-3.5 h-3.5 text-[#166534]" />
+                                <span>Assign Dispatch Collector</span>
+                            </label>
+                        </div>
+                        <select
+                            value={selectedCollector}
+                            onChange={(e) => setSelectedCollector(e.target.value)}
+                            className="w-full h-10 border border-[#86EFAC] rounded-[6px] px-3 text-xs font-bold text-[#0F172A] bg-white outline-none focus:ring-2 focus:ring-[#22C55E]/30"
+                        >
+                            {AVAILABLE_COLLECTORS.map((c) => (
+                                <option key={c.id} value={c.name}>
+                                    {c.name} ({c.status})
+                                </option>
+                            ))}
+                        </select>
+
+                        {assignmentSuccess && (
+                            <div className="p-2 bg-[#DCFCE7] border border-[#86EFAC] rounded-[6px] text-[11px] font-bold text-[#15803D] flex items-center gap-2 animate-in fade-in">
+                                <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0" />
+                                <span>{assignmentSuccess}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex items-center gap-3 pt-2">
                         <Button
                             variant="outline"
                             onClick={onClose}
-                            className="flex-1 h-9 border-[#E5E7EB] text-[#1A1A1A] font-bold rounded-[6px] hover:bg-gray-50 transition-all text-[11px] shadow-none"
+                            className="flex-1 h-10 border-[#E2E8F0] text-[#475569] font-bold rounded-[6px] hover:bg-gray-50 transition-all text-xs"
                         >
                             Close
                         </Button>
                         <Button
-                            className="flex-[2.5] h-9 bg-[#15803D] hover:bg-[#166534] text-white font-bold rounded-[6px] transition-all text-[11px] shadow-sm"
+                            onClick={handleTriggerAssignment}
+                            disabled={isAssigning}
+                            className="flex-[2] h-10 bg-[#15803D] hover:bg-[#166534] text-white font-bold rounded-[6px] transition-all text-xs shadow-md shadow-[#15803D]/20 flex items-center justify-center gap-1.5"
                         >
-                            Trigger Assignment
+                            <UserCheck className="w-4 h-4" />
+                            <span>{isAssigning ? "Dispatching..." : "Trigger Assignment"}</span>
                         </Button>
                     </div>
                 </div>

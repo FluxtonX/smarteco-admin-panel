@@ -1,12 +1,14 @@
-import { apiGet, apiPost, apiPatch, apiPut } from "@/lib/api-client";
+import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/api-client";
 
 export type AdminRole = "Super Admin" | "Operations Manager" | "Finance Admin" | "IoT Supervisor" | "Support Agent";
 export type AdminStatus = "Active" | "Inactive";
 
 export interface AdminRecord {
     id: string;
+    rawId?: string;
     name: string;
     email: string;
+    phone?: string;
     role: AdminRole;
     permissions: string[];
     status: AdminStatus;
@@ -30,10 +32,7 @@ export type PermissionModule =
     | "EcoPoints"
     | "Payments"
     | "Reports"
-    | "Referrals"
     | "Settings";
-
-export type RoleKey = "superAdmin" | "operations" | "finance" | "iot" | "support";
 
 export interface RolePermissionMatrix {
     module: PermissionModule;
@@ -46,37 +45,36 @@ export interface RolePermissionMatrix {
 
 class AdminService {
     async getAdmins(): Promise<AdminRecord[]> {
-        const response = await apiGet<{ success: boolean; data: any[] }>("/admin/users"); // Assuming admin users are handled here
-        if (response.success) {
-            return response.data.map(u => ({
-                id: u.id,
-                name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.phone,
-                email: u.email || "",
-                role: u.role as AdminRole,
-                permissions: [], // Permissions might need another endpoint or field
-                status: u.status === 'ACTIVE' ? 'Active' : 'Inactive',
-                timestamp: u.createdAt,
-                avatarUrl: u.avatarUrl
-            }));
+        const response = await apiGet<{ success: boolean; data: any[] }>("/admin/users");
+        if (response.success && Array.isArray(response.data)) {
+            return response.data
+                .filter((u: any) => u.role === 'ADMIN' || u.subRole)
+                .map((u: any) => ({
+                    id: `ADM-${String(u.id).slice(0, 6).toUpperCase()}`,
+                    rawId: u.id,
+                    name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Admin',
+                    email: u.email || "",
+                    phone: u.phone || "",
+                    role: (u.subRole || 'Super Admin') as AdminRole,
+                    permissions: u.permissions || [u.subRole || 'Super Admin'],
+                    status: (u.isActive === false ? 'Inactive' : 'Active') as AdminStatus,
+                    timestamp: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+                    avatarUrl: u.avatarUrl
+                }));
         }
         return [];
     }
 
     async getStats(): Promise<AdminStats> {
-        const response = await apiGet<{ success: boolean; data: any }>("/admin/dashboard");
-        if (response.success) {
-            // Mapping backend stats to AdminStats
-            return {
-                totalAdmins: response.data.totalUsers || 0,
-                activeAdmins: response.data.activeUsers || 0,
-                superAdmins: 0, // Backend might not provide these specific counts yet
-                operationsStaff: 0
-            };
-        }
-        return { totalAdmins: 0, activeAdmins: 0, superAdmins: 0, operationsStaff: 0 };
+        const admins = await this.getAdmins();
+        return {
+            totalAdmins: admins.length,
+            activeAdmins: admins.filter(a => a.status === 'Active').length,
+            superAdmins: admins.filter(a => a.role === 'Super Admin').length,
+            operationsStaff: admins.filter(a => a.role === 'Operations Manager').length
+        };
     }
 
-    // Role Matrix might still need local mock or dedicated endpoint
     async getPermissionMatrix(): Promise<RolePermissionMatrix[]> {
         return [
             { module: "Dashboard", superAdmin: true, operations: true, finance: true, iot: true, support: true },
@@ -91,18 +89,64 @@ class AdminService {
         ];
     }
 
-    async createAdmin(data: Omit<AdminRecord, "id" | "timestamp">): Promise<AdminRecord> {
-        const response = await apiPost<{ success: boolean; data: any }>("/admin/users", data);
-        return response.data;
+    async createAdmin(data: { name: string; email: string; phone?: string; password?: string; role: AdminRole; status?: AdminStatus; permissions?: string[] }): Promise<AdminRecord> {
+        const nameParts = data.name.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ') || 'Admin';
+
+        const payload = {
+            firstName,
+            lastName,
+            email: data.email,
+            phone: data.phone || `+25078${Math.floor(1000000 + Math.random() * 9000000)}`,
+            password: data.password || 'SmartEco2026!',
+            role: 'ADMIN',
+            subRole: data.role,
+            isActive: data.status !== 'Inactive'
+        };
+
+        const res = await apiPost<{ success: boolean; data: any; message?: string }>("/admin/users", payload);
+        if (!res.success || !res.data) {
+            throw new Error(res.message || "Failed to persist admin user record to database");
+        }
+
+        return {
+            id: `ADM-${String(res.data.id).slice(0, 6).toUpperCase()}`,
+            rawId: res.data.id,
+            name: `${res.data.firstName || ''} ${res.data.lastName || ''}`.trim() || data.name,
+            email: res.data.email || data.email,
+            phone: res.data.phone || payload.phone,
+            role: (res.data.subRole || data.role) as AdminRole,
+            permissions: data.permissions || [data.role],
+            status: res.data.isActive === false ? 'Inactive' : 'Active',
+            timestamp: res.data.createdAt ? new Date(res.data.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
+        };
     }
 
-    async updateAdmin(id: string, data: Partial<AdminRecord>): Promise<AdminRecord> {
-        const response = await apiPatch<{ success: boolean; data: any }>(`/admin/users/${id}`, data);
-        return response.data;
+    async updateAdmin(id: string, updates: Partial<AdminRecord>): Promise<boolean> {
+        const payload: any = {};
+        if (updates.name) {
+            const parts = updates.name.trim().split(' ');
+            payload.firstName = parts[0];
+            payload.lastName = parts.slice(1).join(' ') || 'Admin';
+        }
+        if (updates.email !== undefined) payload.email = updates.email;
+        if (updates.phone !== undefined) payload.phone = updates.phone;
+        if (updates.role !== undefined) payload.subRole = updates.role;
+        if (updates.status !== undefined) payload.isActive = updates.status === 'Active';
+
+        const res = await apiPatch<{ success: boolean }>(`/admin/users/${id}`, payload);
+        if (!res.success) {
+            throw new Error("Failed to update admin record in database");
+        }
+        return true;
     }
 
     async deleteAdmin(id: string): Promise<{ success: boolean }> {
-        // There is no DELETE in the provided list, but typically exist
+        const res = await apiDelete<{ success: boolean }>(`/admin/users/${id}`);
+        if (!res.success) {
+            throw new Error("Failed to delete admin record from database");
+        }
         return { success: true };
     }
 }

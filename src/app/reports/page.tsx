@@ -62,7 +62,10 @@ export default function ReportsPage() {
                                 Generate and download system reports
                             </p>
                         </div>
-                        <Button className="bg-[#DCFCE7] text-[#166534] hover:bg-[#bbf7d0] border border-[#166534]/20 text-[11px] md:text-[12px] font-bold uppercase tracking-widest h-10 md:h-11 px-6 md:px-8 flex items-center justify-center gap-2 rounded-[2px] shadow-sm w-full sm:w-auto">
+                        <Button
+                            onClick={() => reportService.generateReport({ type: 'Daily Operations', format: 'CSV', dateRange: new Date().toISOString().slice(0, 10) })}
+                            className="bg-[#DCFCE7] text-[#166534] hover:bg-[#bbf7d0] border border-[#166534]/20 text-[11px] md:text-[12px] font-bold uppercase tracking-widest h-10 md:h-11 px-6 md:px-8 flex items-center justify-center gap-2 rounded-[6px] shadow-sm w-full sm:w-auto cursor-pointer"
+                        >
                             <Download className="w-4 h-4" />
                             Generate Report
                         </Button>

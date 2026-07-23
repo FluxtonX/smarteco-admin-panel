@@ -8,6 +8,7 @@ export interface UserProfile {
     lastName: string | null;
     userType: string;
     role: string;
+    subRole?: string | null;
     avatarUrl: string | null;
     ecoPoints: number;
     ecoTier: string;
@@ -69,129 +70,6 @@ function mapTier(ecoTier?: string): string {
     }
 }
 
-const MOCK_USERS: UserRecord[] = [
-    {
-        id: "USR-A1B2C3",
-        rawId: "a1b2c3d4-0001-4000-8000-000000000001",
-        name: "Jean Baptiste",
-        firstName: "Jean",
-        lastName: "Baptiste",
-        phone: "+250 788 123 456",
-        email: "jean.baptiste@smarteco.rw",
-        location: "KN 4 Ave, Nyarugenge",
-        type: "Residential",
-        tier: "Eco Champion",
-        points: 450,
-        pickups: 32,
-        status: "Active"
-    },
-    {
-        id: "USR-D4E5F6",
-        rawId: "a1b2c3d4-0002-4000-8000-000000000002",
-        name: "Kigali Heights Commercial",
-        firstName: "Kigali Heights",
-        lastName: "Commercial",
-        phone: "+250 788 987 654",
-        email: "operations@kigaliheights.rw",
-        location: "KG 7 Ave, Kacyiru",
-        type: "Business",
-        tier: "Eco Champion",
-        points: 1250,
-        pickups: 84,
-        status: "Active"
-    },
-    {
-        id: "USR-G7H8I9",
-        rawId: "a1b2c3d4-0003-4000-8000-000000000003",
-        name: "Marie Claire Uwimana",
-        firstName: "Marie Claire",
-        lastName: "Uwimana",
-        phone: "+250 783 112 233",
-        email: "marie.claire@gmail.com",
-        location: "KG 11 Ave, Remera",
-        type: "Residential",
-        tier: "Eco Warrior",
-        points: 210,
-        pickups: 15,
-        status: "Active"
-    },
-    {
-        id: "USR-J1K2L3",
-        rawId: "a1b2c3d4-0004-4000-8000-000000000004",
-        name: "Hotel des Mille Collines",
-        firstName: "Hotel Mille",
-        lastName: "Collines",
-        phone: "+250 788 555 444",
-        email: "sustainability@millecollines.rw",
-        location: "KN 2 Ave, Nyarugenge",
-        type: "Business",
-        tier: "Eco Warrior",
-        points: 780,
-        pickups: 48,
-        status: "Active"
-    },
-    {
-        id: "USR-M4N5O6",
-        rawId: "a1b2c3d4-0005-4000-8000-000000000005",
-        name: "Emmanuel Nzeyimana",
-        firstName: "Emmanuel",
-        lastName: "Nzeyimana",
-        phone: "+250 782 999 888",
-        email: "emmanuel.n@yahoo.com",
-        location: "KG 17 Ave, Kimironko",
-        type: "Residential",
-        tier: "Eco Starter",
-        points: 45,
-        pickups: 4,
-        status: "Suspended"
-    },
-    {
-        id: "USR-P7Q8R9",
-        rawId: "a1b2c3d4-0006-4000-8000-000000000006",
-        name: "Inyange Foods Ltd",
-        firstName: "Inyange",
-        lastName: "Foods",
-        phone: "+250 788 333 222",
-        email: "recycling@inyange.rw",
-        location: "KK 6 Ave, Gikondo",
-        type: "Business",
-        tier: "Eco Champion",
-        points: 1890,
-        pickups: 112,
-        status: "Active"
-    },
-    {
-        id: "USR-S1T2U3",
-        rawId: "a1b2c3d4-0007-4000-8000-000000000007",
-        name: "Aline Mutesi",
-        firstName: "Aline",
-        lastName: "Mutesi",
-        phone: "+250 781 444 777",
-        email: "aline.mutesi@gmail.com",
-        location: "KN 20 Ave, Nyamirambo",
-        type: "Residential",
-        tier: "Eco Starter",
-        points: 20,
-        pickups: 2,
-        status: "Active"
-    },
-    {
-        id: "USR-V4W5X6",
-        rawId: "a1b2c3d4-0008-4000-8000-000000000008",
-        name: "Kicukiro Green Hub",
-        firstName: "Kicukiro",
-        lastName: "Green Hub",
-        phone: "+250 788 666 111",
-        email: "kicukiro.hub@smarteco.rw",
-        location: "KK 15 Rd, Kicukiro",
-        type: "Business",
-        tier: "Eco Warrior",
-        points: 340,
-        pickups: 22,
-        status: "Suspended"
-    }
-];
-
 export const userService = {
     getProfile: async (): Promise<UserProfile> => {
         const response: any = await apiGet('/users/me');
@@ -221,8 +99,8 @@ export const userService = {
     getUsers: async (): Promise<UserRecord[]> => {
         try {
             const response: any = await apiGet('/admin/users');
-            const list = Array.isArray(response) ? response : (response?.data ?? []);
-            if (list.length > 0) {
+            if (response && (response.success || Array.isArray(response.data) || Array.isArray(response))) {
+                const list = Array.isArray(response) ? response : (response.data ?? []);
                 return list.map((u: any) => {
                     const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.phone || 'Resident';
                     return {
@@ -243,9 +121,9 @@ export const userService = {
                 });
             }
         } catch (error) {
-            console.warn('Backend /admin/users API unavailable, using fallback mock users:', error);
+            console.warn('Backend /admin/users API unreached:', error);
         }
-        return MOCK_USERS;
+        return [];
     },
 
     getDashboardStats: async (): Promise<DashboardStats | null> => {
@@ -256,44 +134,9 @@ export const userService = {
                 return stats;
             }
         } catch (error) {
-            console.warn('Backend dashboard stats unavailable:', error);
+            console.error('Failed to fetch dashboard stats:', error);
         }
         return null;
-    },
-
-    deleteUser: async (rawId: string): Promise<boolean> => {
-        try {
-            await apiDelete(`/admin/users/${rawId}`);
-            return true;
-        } catch (error) {
-            console.warn(`Backend delete call failed for ${rawId}, updating local state:`, error);
-            return true;
-        }
-    },
-
-    updateUserAdmin: async (rawId: string, data: Partial<UserRecord>): Promise<boolean> => {
-        try {
-            const payload: any = {};
-            if (data.name) {
-                const parts = data.name.trim().split(' ');
-                payload.firstName = parts[0];
-                payload.lastName = parts.slice(1).join(' ');
-            }
-            if (data.firstName) payload.firstName = data.firstName;
-            if (data.lastName) payload.lastName = data.lastName;
-            if (data.phone) payload.phone = data.phone;
-            if (data.email) payload.email = data.email;
-            if (data.type) payload.userType = data.type === 'Business' ? 'BUSINESS' : 'RESIDENTIAL';
-            if (data.tier) payload.tier = data.tier.toUpperCase().replace(/\s+/g, '_');
-            if (data.points !== undefined) payload.ecoPoints = data.points;
-            if (data.status) payload.isActive = data.status === 'Active';
-
-            const res: any = await apiPatch(`/admin/users/${rawId}`, payload);
-            return res?.success ?? true;
-        } catch (error) {
-            console.warn(`Backend update user ${rawId} failed, applying local update:`, error);
-            return true;
-        }
     },
 
     toggleUserStatus: async (rawId: string): Promise<boolean> => {
@@ -301,8 +144,37 @@ export const userService = {
             const res: any = await apiPatch(`/admin/users/${rawId}/toggle-status`, {});
             return res?.success ?? true;
         } catch (error) {
-            console.warn(`Backend toggle status for ${rawId} failed:`, error);
-            return true;
+            console.error(`Failed to toggle status for user ${rawId}:`, error);
+            return false;
+        }
+    },
+
+    updateUser: async (rawId: string, updates: Partial<UserRecord>): Promise<boolean> => {
+        try {
+            const payload: any = {};
+            if (updates.firstName !== undefined) payload.firstName = updates.firstName;
+            if (updates.lastName !== undefined) payload.lastName = updates.lastName;
+            if (updates.type !== undefined) payload.userType = updates.type.toUpperCase();
+            if (updates.tier !== undefined) payload.ecoTier = updates.tier.toUpperCase().replace(/\s+/g, '_');
+            if (updates.status !== undefined) payload.isActive = updates.status === 'Active';
+            if (updates.phone !== undefined) payload.phone = updates.phone;
+            if (updates.email !== undefined) payload.email = updates.email;
+
+            const res: any = await apiPatch(`/admin/users/${rawId}`, payload);
+            return res?.success ?? true;
+        } catch (error) {
+            console.error(`Failed to update user ${rawId}:`, error);
+            return false;
+        }
+    },
+
+    deleteUser: async (rawId: string): Promise<boolean> => {
+        try {
+            const res: any = await apiDelete(`/admin/users/${rawId}`);
+            return res?.success ?? true;
+        } catch (error) {
+            console.error(`Failed to delete user ${rawId}:`, error);
+            return false;
         }
     }
 };

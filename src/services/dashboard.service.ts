@@ -30,70 +30,6 @@ export interface PickupTrendPoint {
     waste: number;
 }
 
-const MOCK_STATS: Stat[] = [
-    {
-        title: "Total Users",
-        value: "1,240",
-        change: "+12% from last month",
-        trend: "up",
-        subtext: "78 new this week"
-    },
-    {
-        title: "Active Pickups",
-        value: "4,890",
-        change: "+8.4% from yesterday",
-        trend: "up",
-        subtext: "120 scheduled today"
-    },
-    {
-        title: "Revenue (Month)",
-        value: "RWF 2,850,000",
-        change: "+15.2% growth",
-        trend: "up",
-        subtext: "RWF 387,500 this month"
-    },
-    {
-        title: "Waste Collected",
-        value: "14,250 kg",
-        change: "+5.1% this week",
-        trend: "up",
-        subtext: "Across 5 sectors"
-    }
-];
-
-const MOCK_TRENDS: PickupTrendPoint[] = [
-    { name: "Mon", pickups: 45, waste: 320 },
-    { name: "Tue", pickups: 60, waste: 450 },
-    { name: "Wed", pickups: 75, waste: 580 },
-    { name: "Thu", pickups: 90, waste: 720 },
-    { name: "Fri", pickups: 110, waste: 890 },
-    { name: "Sat", pickups: 130, waste: 1050 },
-    { name: "Sun", pickups: 95, waste: 780 }
-];
-
-const MOCK_WASTE_STATS: Record<string, number> = {
-    Organic: 4850,
-    Recyclable: 3420,
-    Glass: 1200,
-    "E-Waste": 650,
-    Hazardous: 280
-};
-
-const MOCK_COLLECTORS: CollectorSummary[] = [
-    { id: "COL-001", name: "Patrick Mugisha", avatar: "PM", status: "On Delivery", pickupsToday: 14 },
-    { id: "COL-002", name: "Jean Claude Habimana", avatar: "JH", status: "Available", pickupsToday: 9 },
-    { id: "COL-003", name: "Eric Nshimiyimana", avatar: "EN", status: "On Delivery", pickupsToday: 11 },
-    { id: "COL-004", name: "Divine Uwase", avatar: "DU", status: "Available", pickupsToday: 7 }
-];
-
-const MOCK_ACTIVITIES: Activity[] = [
-    { id: "act-1", type: "USER_REGISTRATION", user: "Jean Baptiste", time: new Date(Date.now() - 5 * 60000), detail: "Nyarugenge Sector" },
-    { id: "act-2", type: "PICKUP_COMPLETED", user: "Patrick Mugisha", time: new Date(Date.now() - 14 * 60000), detail: "ECO-89A12" },
-    { id: "act-3", type: "SYSTEM_ALERT", user: "Kigali Heights Commercial", time: new Date(Date.now() - 28 * 60000), detail: "Bin 92% Full" },
-    { id: "act-4", type: "PAYMENT_RECEIVED", user: "Finance Admin", time: new Date(Date.now() - 60 * 60000), detail: "RWF 45,000" },
-    { id: "act-5", type: "PICKUP_COMPLETED", user: "Divine Uwase", time: new Date(Date.now() - 120 * 60000), detail: "ECO-99B41" }
-];
-
 export const dashboardService = {
     async getStats(): Promise<Stat[]> {
         try {
@@ -140,25 +76,30 @@ export const dashboardService = {
                 ];
             }
         } catch (e) {
-            console.warn("Backend /admin/dashboard endpoint unavailable, using mock stats:", e);
+            console.warn("Backend /admin/dashboard endpoint unreached:", e);
         }
-        return MOCK_STATS;
+        return [
+            { title: "Total Users", value: "0", change: "0 new this week", trend: "up", subtext: "0 residential" },
+            { title: "Active Pickups", value: "0", change: "0 scheduled today", trend: "up", subtext: "0 completed today" },
+            { title: "Revenue (Month)", value: "RWF 0", change: "RWF 0 this month", trend: "up", subtext: "MoMo & Airtel Money" },
+            { title: "Waste Collected", value: "0 pts", change: "Issued eco points", trend: "up", subtext: "0 collectors active" }
+        ];
     },
 
     async getPickupTrends(): Promise<PickupTrendPoint[]> {
+        const daysMap: Record<string, { pickups: number; waste: number }> = {
+            Mon: { pickups: 0, waste: 0 },
+            Tue: { pickups: 0, waste: 0 },
+            Wed: { pickups: 0, waste: 0 },
+            Thu: { pickups: 0, waste: 0 },
+            Fri: { pickups: 0, waste: 0 },
+            Sat: { pickups: 0, waste: 0 },
+            Sun: { pickups: 0, waste: 0 }
+        };
+
         try {
             const response = await apiGet<{ success: boolean; data: any[] }>("/admin/pickups?limit=100");
             if (response.success && response.data && response.data.length > 0) {
-                const daysMap: Record<string, { pickups: number; waste: number }> = {
-                    Mon: { pickups: 0, waste: 0 },
-                    Tue: { pickups: 0, waste: 0 },
-                    Wed: { pickups: 0, waste: 0 },
-                    Thu: { pickups: 0, waste: 0 },
-                    Fri: { pickups: 0, waste: 0 },
-                    Sat: { pickups: 0, waste: 0 },
-                    Sun: { pickups: 0, waste: 0 }
-                };
-
                 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
                 response.data.forEach(p => {
@@ -171,22 +112,16 @@ export const dashboardService = {
                         }
                     }
                 });
-
-                const result = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => ({
-                    name: d,
-                    pickups: daysMap[d].pickups,
-                    waste: daysMap[d].waste
-                }));
-
-                // If any day has pickups, return dynamic result
-                if (result.some(r => r.pickups > 0)) {
-                    return result;
-                }
             }
         } catch (e) {
-            console.warn("Backend /admin/pickups unavailable for trends, using mock:", e);
+            console.warn("Backend /admin/pickups unreached for trends:", e);
         }
-        return MOCK_TRENDS;
+
+        return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => ({
+            name: d,
+            pickups: daysMap[d].pickups,
+            waste: daysMap[d].waste
+        }));
     },
 
     async getWasteDistribution(): Promise<Record<string, number>> {
@@ -201,10 +136,8 @@ export const dashboardService = {
                 }
                 if (Object.keys(mapped).length > 0) return mapped;
             }
-        } catch (e) {
-            // Fall back
-        }
-        return MOCK_WASTE_STATS;
+        } catch (e) {}
+        return { Organic: 0, Recyclable: 0, Glass: 0, "E-Waste": 0, Hazardous: 0 };
     },
 
     async getActiveCollectors(): Promise<CollectorSummary[]> {
@@ -216,18 +149,15 @@ export const dashboardService = {
                     name: c.name || `${c.user?.firstName || ''} ${c.user?.lastName || ''}`.trim() || 'Collector',
                     avatar: (c.name || 'Collector').split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
                     status: c.isAvailable ? 'Available' : 'On Delivery',
-                    pickupsToday: c.totalPickups || Math.floor(Math.random() * 15) + 3
+                    pickupsToday: c.totalPickups || 0
                 }));
             }
-        } catch (e) {
-            // Fall back
-        }
-        return MOCK_COLLECTORS;
+        } catch (e) {}
+        return [];
     },
 
     async getRecentActivity(): Promise<Activity[]> {
         try {
-            // 1. Try audit logs endpoint
             const response = await apiGet<{ success: boolean; data: any[] }>("/admin/audit-logs?limit=5");
             if (response.success && response.data && response.data.length > 0) {
                 return response.data.map((log, index) => {
@@ -246,7 +176,6 @@ export const dashboardService = {
                 });
             }
 
-            // 2. Dynamic fallback: fetch real live users and pickups if audit logs are empty
             const [usersRes, pickupsRes] = await Promise.allSettled([
                 apiGet<{ success: boolean; data: any[] }>("/admin/users?limit=5"),
                 apiGet<{ success: boolean; data: any[] }>("/admin/pickups?limit=5")
@@ -282,8 +211,8 @@ export const dashboardService = {
                 return dynamicActivities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
             }
         } catch (e) {
-            console.warn("Real activity endpoints unavailable, using dynamic fallback:", e);
+            console.warn("Real activity endpoints unreached:", e);
         }
-        return MOCK_ACTIVITIES;
+        return [];
     }
 };

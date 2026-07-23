@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { BinStats } from "@/components/bins/bin-stats";
@@ -31,24 +31,25 @@ export default function SmartBinManagementPage() {
     const [isBinModalOpen, setIsBinModalOpen] = useState(false);
     const [isMockDataMode, setIsMockDataMode] = useState(false);
 
-    useEffect(() => {
-        async function loadData() {
-            setIsLoading(true);
-            try {
-                const [binsData, statsData] = await Promise.all([
-                    binService.getBins(),
-                    binService.getStats()
-                ]);
-                setBins(binsData);
-                setStats(statsData);
-            } catch (error) {
-                console.error("Failed to load bin data:", error);
-            } finally {
-                setIsLoading(false);
-            }
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const [binsData, statsData] = await Promise.all([
+                binService.getBins(),
+                binService.getStats()
+            ]);
+            setBins(binsData);
+            setStats(statsData);
+        } catch (error) {
+            console.error("Failed to load bin data:", error);
+        } finally {
+            setIsLoading(false);
         }
-        loadData();
     }, []);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const filteredBinsBySearch = bins.filter(b =>
         b.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -137,6 +138,7 @@ export default function SmartBinManagementPage() {
                                     <BinTable
                                         bins={binsRequiringAttention}
                                         isLoading={isLoading}
+                                        onBinUpdated={loadData}
                                     />
                                 </div>
                             </div>
@@ -163,6 +165,7 @@ export default function SmartBinManagementPage() {
                                     <BinTable
                                         bins={filteredBinsBySearch}
                                         isLoading={isLoading}
+                                        onBinUpdated={loadData}
                                     />
                                 </div>
                             </div>
@@ -183,6 +186,7 @@ export default function SmartBinManagementPage() {
                 bin={selectedBinForModal}
                 isOpen={isBinModalOpen}
                 onClose={() => setIsBinModalOpen(false)}
+                onBinUpdated={loadData}
             />
         </div>
     );

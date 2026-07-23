@@ -9,7 +9,7 @@ import {
     PieChart,
     Activity
 } from "lucide-react";
-import { ReportTemplate } from "@/services/report.service";
+import { ReportTemplate, reportService } from "@/services/report.service";
 import { cn } from "@/lib/utils";
 
 interface TemplateGridProps {
@@ -30,12 +30,20 @@ export function ReportTemplatesGrid({ templates }: TemplateGridProps) {
         }
     };
 
+    const handleGenerateTemplate = (title: string) => {
+        reportService.generateReport({
+            type: title,
+            dateRange: new Date().toISOString().slice(0, 10),
+            format: 'CSV'
+        });
+    };
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 font-sans">
             <h3 className="text-[15px] font-bold text-[#1A1A1A]">Report Templates</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.map((template) => (
-                    <Card key={template.id} className="p-8 border-gray-100 shadow-sm rounded-[8px] flex flex-col items-center text-center space-y-4 group hover:shadow-md transition-all">
+                    <Card key={template.id} className="p-8 border-gray-100 shadow-sm rounded-[8px] flex flex-col items-center text-center space-y-4 group hover:shadow-md transition-all bg-white">
                         <div className={cn("p-4 rounded-[12px] transition-transform group-hover:scale-110", template.color.split(' ')[1])}>
                             <div className={template.color.split(' ')[0]}>
                                 {getIcon(template.icon)}
@@ -45,7 +53,10 @@ export function ReportTemplatesGrid({ templates }: TemplateGridProps) {
                             <h4 className="text-[15px] font-bold text-[#1A1A1A]">{template.title}</h4>
                             <p className="text-[12px] font-medium text-gray-400 px-4">{template.description}</p>
                         </div>
-                        <button className="px-6 py-2 text-[11px] font-bold bg-[#DCFCE7] text-[#166534] border border-[#166534]/20 hover:bg-[#bbf7d0] rounded-[2px] uppercase tracking-widest transition-all mt-2 shadow-sm">
+                        <button
+                            onClick={() => handleGenerateTemplate(template.title)}
+                            className="px-6 py-2.5 text-[11px] font-bold bg-[#DCFCE7] text-[#166534] border border-[#166534]/20 hover:bg-[#bbf7d0] rounded-[6px] uppercase tracking-widest transition-all mt-2 shadow-sm cursor-pointer"
+                        >
                             Generate Report
                         </button>
                     </Card>

@@ -227,7 +227,7 @@ export default function AdminProfilePage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-none shadow-lg bg-white rounded-2xl p-8 flex items-center justify-between group cursor-pointer hover:bg-gray-50 transition-all">
+                            <Card className="border-none shadow-lg bg-white rounded-2xl p-8 flex items-center justify-between group cursor-pointer hover:bg-gray-50 transition-all mb-6">
                                 <div>
                                     <h4 className="text-gray-900 font-bold tracking-tight">Two-Factor Authentication</h4>
                                     <p className="text-xs text-gray-400 font-medium">Add an extra layer of security to your account.</p>
@@ -236,6 +236,25 @@ export default function AdminProfilePage() {
                                     <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-all" />
                                 </div>
                             </Card>
+
+                            {profile?.subRole === "Super Admin" && (
+                                <Link href="/profile/simulation">
+                                    <Card className="border border-green-100 shadow-lg bg-white rounded-2xl p-8 flex items-center justify-between group cursor-pointer hover:bg-green-50/30 transition-all">
+                                        <div>
+                                            <h4 className="text-gray-900 font-bold tracking-tight flex items-center">
+                                                <Shield className="w-5 h-5 mr-2 text-primary-green" />
+                                                Business Simulation Environment
+                                            </h4>
+                                            <p className="text-xs text-gray-400 font-medium mt-1">
+                                                Run end-to-end simulations, inspect API logs, and manage mock data.
+                                            </p>
+                                        </div>
+                                        <div className="h-10 px-5 bg-primary-green hover:bg-green-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-md shadow-green-200 transition-all shrink-0">
+                                            Access Simulation
+                                        </div>
+                                    </Card>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </main>

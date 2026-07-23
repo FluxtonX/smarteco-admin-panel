@@ -37,6 +37,8 @@ export default function AdminManagementPage() {
     const [form, setForm] = useState({
         name: "",
         email: "",
+        phone: "",
+        password: "",
         role: "Operations Manager" as AdminRole,
         status: "Active" as AdminStatus,
         permissions: [] as string[],
@@ -56,29 +58,46 @@ export default function AdminManagementPage() {
         });
     }, []);
 
+    const [errorMsg, setErrorMsg] = useState("");
+
     const handleAddAdmin = async () => {
         if (!form.name || !form.email) return;
         setIsSubmitting(true);
-        const newAdmin = await adminService.createAdmin({
-            name: form.name,
-            email: form.email,
-            role: form.role,
-            status: form.status,
-            permissions: form.permissions.length ? form.permissions : [form.role],
-        });
-        const [a, s] = await Promise.all([adminService.getAdmins(), adminService.getStats()]);
-        setAdmins(a);
-        setStats(s);
-        setIsSubmitting(false);
-        setShowModal(false);
-        setForm({ name: "", email: "", role: "Operations Manager", status: "Active", permissions: [] });
+        setErrorMsg("");
+        try {
+            await adminService.createAdmin({
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                password: form.password,
+                role: form.role,
+                status: form.status,
+                permissions: form.permissions.length ? form.permissions : [form.role],
+            });
+            const [a, s] = await Promise.all([adminService.getAdmins(), adminService.getStats()]);
+            setAdmins(a);
+            setStats(s);
+            setShowModal(false);
+            setForm({ name: "", email: "", phone: "", password: "", role: "Operations Manager", status: "Active", permissions: [] });
+        } catch (err: any) {
+            console.error("Failed to create admin account in database:", err);
+            setErrorMsg(err.message || "Failed to create admin account in database.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleDelete = async (id: string) => {
-        await adminService.deleteAdmin(id);
-        const [a, s] = await Promise.all([adminService.getAdmins(), adminService.getStats()]);
-        setAdmins(a);
-        setStats(s);
+        try {
+            const target = admins.find(a => a.id === id || a.rawId === id);
+            const rawId = target?.rawId || id;
+            await adminService.deleteAdmin(rawId);
+            const [a, s] = await Promise.all([adminService.getAdmins(), adminService.getStats()]);
+            setAdmins(a);
+            setStats(s);
+        } catch (err: any) {
+            console.error("Failed to delete admin record from database:", err);
+        }
     };
 
     if (isLoading || !stats) {
@@ -94,7 +113,7 @@ export default function AdminManagementPage() {
     }
 
     return (
-        <div className="flex h-screen bg-[#F8FAFB] overflow-hidden">
+        <div className="flex h-screen bg-[#F8FAFB] overflow-hidden font-sans">
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
@@ -108,7 +127,7 @@ export default function AdminManagementPage() {
                         </div>
                         <Button
                             onClick={() => setShowModal(true)}
-                            className="h-10 px-5 bg-primary-green hover:bg-[#15803D] text-[12px] font-bold rounded-[4px] shadow-lg shadow-green-200/50 flex items-center justify-center gap-2 w-auto"
+                            className="h-10 px-5 bg-primary-green hover:bg-[#15803D] text-[12px] font-bold rounded-[6px] shadow-md shadow-green-200/50 flex items-center justify-center gap-2 w-auto"
                         >
                             <Plus className="w-4 h-4" />
                             Add Admin
@@ -137,55 +156,85 @@ export default function AdminManagementPage() {
 
             {/* Add Admin Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                    <div className="bg-white rounded-[4px] border border-gray-200 shadow-2xl w-full max-w-md mx-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-[12px] border border-gray-200 shadow-2xl w-full max-w-md mx-4 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between px-7 py-5 border-b border-gray-100">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#F8FAFC]">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-[4px] bg-green-50 flex items-center justify-center">
-                                    <UserPlus className="w-4 h-4 text-primary-green" />
+                                <div className="w-8 h-8 rounded-[6px] bg-green-100 flex items-center justify-center">
+                                    <UserPlus className="w-4 h-4 text-[#166534]" />
                                 </div>
                                 <h2 className="text-[16px] font-bold text-gray-800">Add New Admin</h2>
                             </div>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[2px] transition-all border border-transparent hover:border-gray-200"
+                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-all"
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
                         {/* Modal Body */}
-                        <div className="px-7 py-6 space-y-5">
+                        <div className="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                            {errorMsg && (
+                                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-[6px]">
+                                    {errorMsg}
+                                </div>
+                            )}
+
                             {/* Full Name */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block">Full Name</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Full Name</label>
                                 <input
                                     type="text"
-                                    placeholder="John Doe"
-                                    className="w-full h-10 border border-gray-300 rounded-[2px] px-4 text-[13px] font-medium text-gray-700 outline-none hover:border-gray-400 focus:border-primary-green focus:ring-1 focus:ring-primary-green/20 transition-all placeholder:text-gray-300"
+                                    placeholder="e.g. Fabrice Nkurunziza"
+                                    className="w-full h-10 border border-gray-300 rounded-[6px] px-3.5 text-xs font-bold text-gray-800 outline-none hover:border-gray-400 focus:border-primary-green transition-all"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 />
                             </div>
 
                             {/* Email */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block">Email</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Email Address</label>
                                 <input
                                     type="email"
-                                    placeholder="admin@smarteco.rw"
-                                    className="w-full h-10 border border-gray-300 rounded-[2px] px-4 text-[13px] font-medium text-gray-700 outline-none hover:border-gray-400 focus:border-primary-green focus:ring-1 focus:ring-primary-green/20 transition-all placeholder:text-gray-300"
+                                    placeholder="ops.manager@smarteco.rw"
+                                    className="w-full h-10 border border-gray-300 rounded-[6px] px-3.5 text-xs font-bold text-gray-800 outline-none hover:border-gray-400 focus:border-primary-green transition-all"
                                     value={form.email}
                                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                                 />
                             </div>
 
+                            {/* Phone */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Phone Number</label>
+                                <input
+                                    type="text"
+                                    placeholder="+250 788 123 456"
+                                    className="w-full h-10 border border-gray-300 rounded-[6px] px-3.5 text-xs font-bold text-gray-800 outline-none hover:border-gray-400 focus:border-primary-green transition-all"
+                                    value={form.phone}
+                                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                                />
+                            </div>
+
+                            {/* Password */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Default Password</label>
+                                <input
+                                    type="password"
+                                    placeholder="••••••••"
+                                    className="w-full h-10 border border-gray-300 rounded-[6px] px-3.5 text-xs font-bold text-gray-800 outline-none hover:border-gray-400 focus:border-primary-green transition-all"
+                                    value={form.password}
+                                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                />
+                            </div>
+
                             {/* Role */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block">Role</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Assigned Sub-Role</label>
                                 <select
-                                    className="w-full h-10 border border-gray-300 rounded-[2px] px-4 text-[13px] font-medium text-gray-600 outline-none hover:border-gray-400 focus:border-primary-green focus:ring-1 focus:ring-primary-green/20 transition-all bg-white"
+                                    className="w-full h-10 border border-gray-300 rounded-[6px] px-3.5 text-xs font-bold text-gray-800 outline-none hover:border-gray-400 focus:border-primary-green bg-white"
                                     value={form.role}
                                     onChange={(e) => setForm({ ...form, role: e.target.value as AdminRole })}
                                 >
@@ -196,17 +245,18 @@ export default function AdminManagementPage() {
                             </div>
 
                             {/* Status */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block">Status</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Account Status</label>
                                 <div className="flex gap-3">
                                     {(["Active", "Inactive"] as AdminStatus[]).map((s) => (
                                         <button
                                             key={s}
+                                            type="button"
                                             onClick={() => setForm({ ...form, status: s })}
-                                            className={`flex-1 h-9 border rounded-[2px] text-[12px] font-bold transition-all ${form.status === s
+                                            className={`flex-1 h-9 rounded-[6px] text-xs font-bold transition-all border ${form.status === s
                                                 ? s === "Active"
-                                                    ? "bg-green-50 border-green-300 text-green-700"
-                                                    : "bg-gray-100 border-gray-300 text-gray-600"
+                                                    ? "bg-[#DCFCE7] border-[#86EFAC] text-[#166534]"
+                                                    : "bg-gray-100 border-gray-300 text-gray-700"
                                                 : "border-gray-200 text-gray-400 hover:border-gray-300"
                                                 }`}
                                         >
@@ -218,20 +268,20 @@ export default function AdminManagementPage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="px-7 py-5 border-t border-gray-100 flex gap-3 justify-end">
+                        <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end bg-gray-50">
                             <Button
                                 variant="outline"
                                 onClick={() => setShowModal(false)}
-                                className="h-9 px-5 border-gray-200 text-[12px] font-bold text-gray-500 rounded-[2px]"
+                                className="h-10 px-5 border-gray-200 text-xs font-bold text-gray-600 rounded-[6px]"
                             >
                                 Cancel
                             </Button>
                             <Button
                                 onClick={handleAddAdmin}
                                 disabled={isSubmitting || !form.name || !form.email}
-                                className="h-9 px-6 bg-primary-green hover:bg-[#15803D] text-[12px] font-bold rounded-[2px] disabled:opacity-50"
+                                className="h-10 px-6 bg-primary-green hover:bg-[#15803D] text-xs font-bold rounded-[6px] text-white shadow-md shadow-primary-green/20 disabled:opacity-50"
                             >
-                                {isSubmitting ? "Adding..." : "Add Admin"}
+                                {isSubmitting ? "Creating..." : "Create Admin Role"}
                             </Button>
                         </div>
                     </div>
