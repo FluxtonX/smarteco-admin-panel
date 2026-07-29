@@ -154,8 +154,14 @@ export const userService = {
             const payload: any = {};
             if (updates.firstName !== undefined) payload.firstName = updates.firstName;
             if (updates.lastName !== undefined) payload.lastName = updates.lastName;
+            if (updates.name !== undefined) {
+                const parts = updates.name.trim().split(' ');
+                payload.firstName = parts[0] || '';
+                payload.lastName = parts.slice(1).join(' ') || '';
+            }
             if (updates.type !== undefined) payload.userType = updates.type.toUpperCase();
-            if (updates.tier !== undefined) payload.ecoTier = updates.tier.toUpperCase().replace(/\s+/g, '_');
+            if (updates.tier !== undefined) payload.tier = updates.tier;
+            if (updates.points !== undefined) payload.ecoPoints = Number(updates.points);
             if (updates.status !== undefined) payload.isActive = updates.status === 'Active';
             if (updates.phone !== undefined) payload.phone = updates.phone;
             if (updates.email !== undefined) payload.email = updates.email;

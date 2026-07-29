@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, AlertTriangle, Truck, CheckCircle2, UserCheck } from "lucide-react";
-import { BinRecord, binService } from "@/services/bin.service";
+import { X, Truck, CheckCircle2, UserCheck, AlertCircle } from "lucide-react";
+import { BinRecord, CollectorOption, binService } from "@/services/bin.service";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -15,42 +15,52 @@ interface BinDetailsModalProps {
     onBinUpdated?: () => void;
 }
 
-const AVAILABLE_COLLECTORS = [
-    { id: "COL-001", name: "Patrick Mugisha", status: "On Delivery" },
-    { id: "COL-002", name: "Jean Claude Habimana", status: "Available" },
-    { id: "COL-003", name: "Divine Uwase", status: "Available" },
-    { id: "COL-004", name: "Eric Nshimiyimana", status: "On Delivery" },
-];
-
 export function BinDetailsModal({ bin, isOpen, onClose, onBinUpdated }: BinDetailsModalProps) {
-    const [selectedCollector, setSelectedCollector] = useState<string>("Patrick Mugisha");
+    const [collectors, setCollectors] = useState<CollectorOption[]>([]);
+    const [selectedCollectorId, setSelectedCollectorId] = useState<string>("");
+    const [isLoadingCollectors, setIsLoadingCollectors] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
     const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(null);
+    const [assignmentError, setAssignmentError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (bin) {
-            if (bin.collector && bin.collector !== "Unassigned") {
-                setSelectedCollector(bin.collector);
-            } else {
-                setSelectedCollector("Patrick Mugisha");
-            }
+        if (isOpen) {
+            setIsLoadingCollectors(true);
             setAssignmentSuccess(null);
+            setAssignmentError(null);
+            binService.getCollectors().then((fetched) => {
+                setCollectors(fetched);
+                if (fetched.length > 0) {
+                    setSelectedCollectorId(fetched[0].id);
+                }
+                setIsLoadingCollectors(false);
+            }).catch(() => {
+                setIsLoadingCollectors(false);
+            });
         }
-    }, [bin]);
+    }, [isOpen]);
 
     if (!bin) return null;
 
     const handleTriggerAssignment = async () => {
+        if (!selectedCollectorId) {
+            setAssignmentError("Please select a valid collector profile.");
+            return;
+        }
+
         setIsAssigning(true);
+        setAssignmentError(null);
+        setAssignmentSuccess(null);
         try {
-            const res = await binService.assignCollector(bin.id, selectedCollector);
-            setAssignmentSuccess(`Successfully assigned ${res.collector} to ${bin.id}!`);
+            const res = await binService.assignCollector(bin.id, selectedCollectorId);
+            setAssignmentSuccess(res.message || `Assigned ${res.collectorName} to bin ${bin.id}`);
             if (onBinUpdated) onBinUpdated();
             setTimeout(() => {
                 setAssignmentSuccess(null);
             }, 3000);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Assignment failed:", error);
+            setAssignmentError(error.message || "Failed to assign collector.");
         } finally {
             setIsAssigning(false);
         }
@@ -127,23 +137,40 @@ export function BinDetailsModal({ bin, isOpen, onClose, onBinUpdated }: BinDetai
                                 <Truck className="w-3.5 h-3.5 text-[#166534]" />
                                 <span>Assign Dispatch Collector</span>
                             </label>
+                            {isLoadingCollectors && (
+                                <span className="text-[10px] font-semibold text-gray-400 animate-pulse">Loading collectors...</span>
+                            )}
                         </div>
-                        <select
-                            value={selectedCollector}
-                            onChange={(e) => setSelectedCollector(e.target.value)}
-                            className="w-full h-10 border border-[#86EFAC] rounded-[6px] px-3 text-xs font-bold text-[#0F172A] bg-white outline-none focus:ring-2 focus:ring-[#22C55E]/30"
-                        >
-                            {AVAILABLE_COLLECTORS.map((c) => (
-                                <option key={c.id} value={c.name}>
-                                    {c.name} ({c.status})
-                                </option>
-                            ))}
-                        </select>
+
+                        {collectors.length > 0 ? (
+                            <select
+                                value={selectedCollectorId}
+                                onChange={(e) => setSelectedCollectorId(e.target.value)}
+                                className="w-full h-10 border border-[#86EFAC] rounded-[6px] px-3 text-xs font-bold text-[#0F172A] bg-white outline-none focus:ring-2 focus:ring-[#22C55E]/30"
+                            >
+                                {collectors.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name} ({c.zone} — Plate: {c.vehiclePlate})
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <div className="p-3 bg-white border border-gray-200 rounded-[6px] text-[11px] font-bold text-gray-500 text-center">
+                                {isLoadingCollectors ? "Fetching collectors from system..." : "No active collectors found in system."}
+                            </div>
+                        )}
 
                         {assignmentSuccess && (
                             <div className="p-2 bg-[#DCFCE7] border border-[#86EFAC] rounded-[6px] text-[11px] font-bold text-[#15803D] flex items-center gap-2 animate-in fade-in">
                                 <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0" />
                                 <span>{assignmentSuccess}</span>
+                            </div>
+                        )}
+
+                        {assignmentError && (
+                            <div className="p-2 bg-[#FEE2E2] border border-[#FCA5A5] rounded-[6px] text-[11px] font-bold text-[#991B1B] flex items-center gap-2 animate-in fade-in">
+                                <AlertCircle className="w-4 h-4 text-[#991B1B] shrink-0" />
+                                <span>{assignmentError}</span>
                             </div>
                         )}
                     </div>
@@ -159,7 +186,7 @@ export function BinDetailsModal({ bin, isOpen, onClose, onBinUpdated }: BinDetai
                         </Button>
                         <Button
                             onClick={handleTriggerAssignment}
-                            disabled={isAssigning}
+                            disabled={isAssigning || collectors.length === 0}
                             className="flex-[2] h-10 bg-[#15803D] hover:bg-[#166534] text-white font-bold rounded-[6px] transition-all text-xs shadow-md shadow-[#15803D]/20 flex items-center justify-center gap-1.5"
                         >
                             <UserCheck className="w-4 h-4" />

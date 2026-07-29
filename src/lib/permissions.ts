@@ -1,17 +1,16 @@
 export type AdminRole =
     | "Super Admin"
+    | "SUPER_ADMIN"
     | "Operations Manager"
+    | "OPERATIONS_MANAGER"
     | "Finance Admin"
+    | "FINANCE_ADMIN"
     | "IoT Supervisor"
-    | "Support Agent";
+    | "IOT_SUPERVISOR"
+    | "Support Agent"
+    | "SUPPORT_AGENT";
 
-export interface PermissionRule {
-    module: string;
-    route: string;
-    allowedRoles: AdminRole[];
-}
-
-export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "Super Admin": [
         "/dashboard",
         "/users",
@@ -24,7 +23,19 @@ export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
         "/reports",
         "/settings",
         "/admin",
-        "/audit",
+    ],
+    "SUPER_ADMIN": [
+        "/dashboard",
+        "/users",
+        "/collectors",
+        "/pickups",
+        "/bins",
+        "/rewards",
+        "/payments",
+        "/referrals",
+        "/reports",
+        "/settings",
+        "/admin",
     ],
     "Operations Manager": [
         "/dashboard",
@@ -32,13 +43,29 @@ export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
         "/collectors",
         "/pickups",
         "/bins",
+        "/rewards",
         "/reports",
-        "/audit",
+    ],
+    "OPERATIONS_MANAGER": [
+        "/dashboard",
+        "/users",
+        "/collectors",
+        "/pickups",
+        "/bins",
+        "/rewards",
+        "/reports",
     ],
     "Finance Admin": [
         "/dashboard",
-        "/rewards",
         "/payments",
+        "/rewards",
+        "/referrals",
+        "/reports",
+    ],
+    "FINANCE_ADMIN": [
+        "/dashboard",
+        "/payments",
+        "/rewards",
         "/referrals",
         "/reports",
     ],
@@ -47,11 +74,22 @@ export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
         "/bins",
         "/reports",
     ],
+    "IOT_SUPERVISOR": [
+        "/dashboard",
+        "/bins",
+        "/reports",
+    ],
     "Support Agent": [
         "/dashboard",
         "/users",
         "/pickups",
-        "/audit",
+        "/rewards",
+    ],
+    "SUPPORT_AGENT": [
+        "/dashboard",
+        "/users",
+        "/pickups",
+        "/rewards",
     ],
 };
 
@@ -73,7 +111,7 @@ export function setCurrentUserRole(role: AdminRole) {
 }
 
 export function hasRoutePermission(role: AdminRole, href: string): boolean {
-    if (role === "Super Admin") return true;
+    if (role === "Super Admin" || role === "SUPER_ADMIN") return true;
     const allowedRoutes = ROLE_PERMISSIONS[role] || [];
     return allowedRoutes.includes(href);
 }

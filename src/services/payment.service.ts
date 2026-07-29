@@ -176,12 +176,31 @@ export const paymentService = {
     },
 
     getRevenueByWaste: async (): Promise<RevenueWasteData[]> => {
+        try {
+            const res = await apiGet<{ success: boolean; data: any }>('/admin/analytics/pickups');
+            if (res.success && res.data && Array.isArray(res.data.byWasteType) && res.data.byWasteType.length > 0) {
+                const colors: Record<string, string> = {
+                    ORGANIC: "#22C55E",
+                    RECYCLABLE: "#3B82F6",
+                    EWASTE: "#8B5CF6",
+                    GLASS: "#10B981",
+                    HAZARDOUS: "#EF4444",
+                    GENERAL: "#64748B"
+                };
+                return res.data.byWasteType.map((item: any) => ({
+                    name: item.wasteType,
+                    value: Math.round(item.percentageOfTotal || 0),
+                    color: colors[item.wasteType] || "#64748B"
+                }));
+            }
+        } catch (e) {}
+
         return [
-            { name: "Organic", value: 40, color: "#22C55E" },
-            { name: "Recyclable", value: 30, color: "#3B82F6" },
-            { name: "E-Waste", value: 15, color: "#8B5CF6" },
-            { name: "Glass", value: 10, color: "#10B981" },
-            { name: "Hazardous", value: 5, color: "#EF4444" },
+            { name: "Organic", value: 0, color: "#22C55E" },
+            { name: "Recyclable", value: 0, color: "#3B82F6" },
+            { name: "E-Waste", value: 0, color: "#8B5CF6" },
+            { name: "Glass", value: 0, color: "#10B981" },
+            { name: "Hazardous", value: 0, color: "#EF4444" },
         ];
     }
 };

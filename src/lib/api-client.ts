@@ -60,6 +60,23 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     return res.json() as Promise<T>;
 }
 
+export async function apiPostText(path: string, body: unknown): Promise<string> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+        method: 'POST',
+        headers: buildHeaders(),
+        body: JSON.stringify(body),
+    });
+    if (res.status === 401) {
+        handleUnauthorized();
+        throw new Error('Unauthorized');
+    }
+    if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(errText || `POST ${path} failed: ${res.status}`);
+    }
+    return res.text();
+}
+
 export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
     const res = await fetch(`${BASE_URL}${path}`, {
         method: 'PATCH',

@@ -9,6 +9,7 @@ import { EcoPointsCard } from "@/components/settings/ecopoints-structure";
 import { ServiceFeesCard } from "@/components/settings/service-fees";
 import { NotificationTemplatesCard } from "@/components/settings/notification-templates";
 import { CommunicationDebugCard } from "@/components/settings/communication-debug";
+import { MomoSettingsCard } from "@/components/settings/momo-settings-card";
 import { Button } from "@/components/ui/button";
 import { settingsService, SystemSettings } from "@/services/settings.service";
 import { RotateCcw, Save } from "lucide-react";
@@ -91,6 +92,12 @@ export default function SystemSettingsPage() {
                                 <ServiceFeesCard
                                     fees={settings.serviceFees}
                                     onChange={(v) => setSettings({ ...settings, serviceFees: v })}
+                                />
+
+                                {/* MTN MoMo Gateway Settings */}
+                                <MomoSettingsCard
+                                    config={settings.momoGateway}
+                                    onChange={(v) => setSettings({ ...settings, momoGateway: v })}
                                 />
 
                                 {/* Notification Templates */}

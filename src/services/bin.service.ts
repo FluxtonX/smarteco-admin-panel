@@ -15,7 +15,17 @@ export interface BinRecord {
     lastEmptied: string;
     alertStatus: 'Critical' | 'Full' | 'Nearly Full' | 'Normal';
     collector: string;
+    latitude?: number | null;
+    longitude?: number | null;
     history: { time: string; level: number }[];
+}
+
+export interface CollectorOption {
+    id: string;
+    name: string;
+    vehiclePlate: string;
+    zone: string;
+    isAvailable: boolean;
 }
 
 export interface BinStats {
@@ -80,15 +90,17 @@ export const binService = {
                     id: bb.qrCode || bb.id,
                     user: {
                         name: `${bb.user?.firstName || ''} ${bb.user?.lastName || ''}`.trim() || 'Resident',
-                        address: bb.user?.defaultAddress || bb.user?.location || 'Kigali'
+                        address: bb.user?.defaultAddress || bb.user?.address || 'Address Pending'
                     },
                     type: mapWasteType(bb.wasteType),
                     fillLevel: bb.fillLevel || 0,
                     lastEmptied: bb.lastEmptied ? new Date(bb.lastEmptied).toISOString().split('T')[0] : 'N/A',
                     alertStatus: calculateAlertStatus(bb.fillLevel || 0),
                     collector: bb.pickups?.[0]?.collector?.user 
-                        ? `${bb.pickups[0].collector.user.firstName} ${bb.pickups[0].collector.user.lastName}`
+                        ? `${bb.pickups[0].collector.user.firstName || ''} ${bb.pickups[0].collector.user.lastName || ''}`.trim()
                         : "Unassigned",
+                    latitude: bb.latitude ?? bb.user?.homeLatitude ?? null,
+                    longitude: bb.longitude ?? bb.user?.homeLongitude ?? null,
                     history: [
                         { time: "00:00", level: Math.max(0, (bb.fillLevel || 0) - 40) },
                         { time: "06:00", level: Math.max(0, (bb.fillLevel || 0) - 20) },
@@ -104,18 +116,38 @@ export const binService = {
         return [];
     },
 
+    getCollectors: async (): Promise<CollectorOption[]> => {
+        try {
+            const res = await apiGet<{ success: boolean; data: any[] }>('/admin/collectors');
+            if (res.success && Array.isArray(res.data)) {
+                return res.data.map(c => ({
+                    id: c.id,
+                    name: `${c.user?.firstName || ''} ${c.user?.lastName || ''}`.trim() || c.collectorName || 'Collector',
+                    vehiclePlate: c.vehiclePlate || 'N/A',
+                    zone: c.zone || 'Kigali',
+                    isAvailable: c.isAvailable !== false
+                }));
+            }
+        } catch (e) {
+            console.warn("Failed to fetch collectors from API:", e);
+        }
+        return [];
+    },
+
     getBin: async (id: string): Promise<BinRecord | null> => {
         try {
             const res = await apiGet<any>(`/bins/${id}`);
             if (res.data) {
                 return {
                     id: res.data.qrCode || res.data.id,
-                    user: { name: `${res.data.user?.firstName || ''} ${res.data.user?.lastName || ''}`.trim() || "Resident", address: res.data.user?.defaultAddress || "Kigali" },
+                    user: { name: `${res.data.user?.firstName || ''} ${res.data.user?.lastName || ''}`.trim() || "Resident", address: res.data.user?.defaultAddress || "Address Pending" },
                     type: mapWasteType(res.data.wasteType),
                     fillLevel: res.data.fillLevel || 0,
                     lastEmptied: res.data.lastEmptied ? new Date(res.data.lastEmptied).toISOString().split('T')[0] : 'N/A',
                     alertStatus: calculateAlertStatus(res.data.fillLevel || 0),
                     collector: "Unassigned",
+                    latitude: res.data.latitude ?? null,
+                    longitude: res.data.longitude ?? null,
                     history: []
                 };
             }
@@ -141,7 +173,7 @@ export const binService = {
                   .filter((pickup) => pickup.bin?.qrCode || pickup.reference)
                   .map((pickup) => ({
                     binId: pickup.bin?.qrCode || pickup.reference,
-                    collector: pickup.collector ? `${pickup.collector.firstName || ''} ${pickup.collector.lastName || ''}`.trim() : "Unassigned",
+                    collector: pickup.collector ? `${pickup.collector.user?.firstName || ''} ${pickup.collector.user?.lastName || ''}`.trim() : "Unassigned",
                     assignedAt: pickup.createdAt
                       ? new Date(pickup.createdAt).toISOString().slice(0, 16).replace('T', ' ')
                       : "",
@@ -152,12 +184,16 @@ export const binService = {
         return [];
     },
 
-    assignCollector: async (binId: string, collectorId?: string): Promise<{ success: boolean; collector: string }> => {
-        const res = await apiPost<{ success: boolean; message?: string }>('/admin/bins/assign', { binId, collectorId });
+    assignCollector: async (binId: string, collectorId: string): Promise<{ success: boolean; message?: string; collectorName?: string }> => {
+        const res = await apiPost<{ success: boolean; message?: string; data?: any }>('/admin/bins/assign', { binId, collectorId });
         if (!res.success) {
             throw new Error(res.message || "Failed to assign collector to bin");
         }
-        return { success: true, collector: collectorId || "Assigned Collector" };
+        return {
+            success: true,
+            message: res.message,
+            collectorName: res.data?.collectorName || 'Assigned Collector'
+        };
     },
 
     reportBin: async (id: string, dto: ReportBinDto): Promise<GenericResponse> => {

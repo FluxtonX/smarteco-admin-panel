@@ -102,39 +102,47 @@ export function PaymentTable({ transactions }: PaymentTableProps) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredTransactions.map((tx) => (
-                            <TableRow key={tx.id} className="hover:bg-gray-50/30 transition-colors">
-                                <TableCell className="px-6 py-4">
-                                    <div className="space-y-0.5">
-                                        <div className="text-[12px] font-bold text-[#1A1A1A]">{tx.id}</div>
-                                        <div className="text-[10px] font-medium text-gray-400">{tx.momoId}</div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-[13px] font-semibold text-[#1A1A1A]">{tx.user}</TableCell>
-                                <TableCell className="px-6 py-4 text-[13px] font-bold text-[#1A1A1A]">{tx.amount}</TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <Badge className={cn("px-3 py-1 text-[10px] font-bold rounded-[2px] shadow-none border", getMethodStyle(tx.method))}>
-                                        {tx.method}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <Badge className={cn("px-4 py-1 text-[10px] font-bold rounded-[2px] shadow-none border-none", getStatusStyle(tx.status))}>
-                                        {tx.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-[11px] font-medium text-gray-500 whitespace-nowrap">{tx.timestamp}</TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <Badge className={cn("px-3 py-1 text-[10px] font-bold rounded-[2px] shadow-none border-none", getWebhookStyle(tx.webhook))}>
-                                        {tx.webhook}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <button className="px-4 py-1.5 text-[11px] font-bold text-red-500 border border-red-500 rounded-[2px] hover:bg-red-50 transition-colors uppercase tracking-tight">
-                                        Refund
-                                    </button>
+                        {filteredTransactions.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="text-center py-12 text-gray-400 font-semibold text-xs">
+                                    No payment transactions found in system.
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ) : (
+                            filteredTransactions.map((tx) => (
+                                <TableRow key={tx.id} className="hover:bg-gray-50/30 transition-colors">
+                                    <TableCell className="px-6 py-4">
+                                        <div className="space-y-0.5">
+                                            <div className="text-[12px] font-bold text-[#1A1A1A]">{tx.id}</div>
+                                            <div className="text-[10px] font-medium text-gray-400">{tx.momoId}</div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-[13px] font-semibold text-[#1A1A1A]">{tx.user}</TableCell>
+                                    <TableCell className="px-6 py-4 text-[13px] font-bold text-[#1A1A1A]">{tx.amount}</TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <Badge className={cn("px-3 py-1 text-[10px] font-bold rounded-[2px] shadow-none border", getMethodStyle(tx.method))}>
+                                            {tx.method}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <Badge className={cn("px-4 py-1 text-[10px] font-bold rounded-[2px] shadow-none border-none", getStatusStyle(tx.status))}>
+                                            {tx.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-[11px] font-medium text-gray-500 whitespace-nowrap">{tx.timestamp}</TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <Badge className={cn("px-3 py-1 text-[10px] font-bold rounded-[2px] shadow-none border-none", getWebhookStyle(tx.webhook))}>
+                                            {tx.webhook}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <button className="px-4 py-1.5 text-[11px] font-bold text-red-500 border border-red-500 rounded-[2px] hover:bg-red-50 transition-colors uppercase tracking-tight">
+                                            Refund
+                                        </button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
                     </TableBody>
                 </Table>
             </div>

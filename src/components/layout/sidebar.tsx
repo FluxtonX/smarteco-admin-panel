@@ -34,7 +34,6 @@ const menuItems = [
     { icon: FileText, label: "Reports", href: "/reports" },
     { icon: Settings, label: "System Settings", href: "/settings" },
     { icon: UserCog, label: "Admin Management", href: "/admin" },
-    { icon: History, label: "Audit Logs", href: "/audit" },
 ];
 
 interface SidebarProps {
@@ -52,7 +51,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             if (profile && (profile as any).subRole) {
                 setRoleState((profile as any).subRole as AdminRole);
             }
-        }).catch(() => {});
+        }).catch(() => { });
     }, []);
 
     const visibleMenuItems = menuItems.filter(item => hasRoutePermission(currentRole, item.href));
@@ -115,6 +114,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     })}
                 </nav>
 
+                {/* Sidebar Footer Branding */}
             </div>
         </>
     );

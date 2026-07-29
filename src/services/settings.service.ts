@@ -31,12 +31,25 @@ export interface ServiceFees {
     businessEWaste: number;
 }
 export interface NotificationTemplate { id: string; name: string; channel: string; }
+
+export interface MomoGatewayConfig {
+    environment: 'sandbox' | 'production';
+    baseUrl: string;
+    currency: string;
+    targetEnvironment: string;
+    apiKey: string;
+    apiUser: string;
+    subscriptionKey: string;
+    enabled: boolean;
+}
+
 export interface SystemSettings {
     autoAssignment: AutoAssignmentSettings;
     timeSlots: TimeSlotConfig;
     ecoPoints: EcoPointsStructure;
     serviceFees: ServiceFees;
     notificationTemplates: NotificationTemplate[];
+    momoGateway?: MomoGatewayConfig;
 }
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -76,6 +89,16 @@ const DEFAULT_SETTINGS: SystemSettings = {
         { id: "tmpl_bin_alert", name: "Smart Bin Threshold Exceeded", channel: "Push & Admin Dashboard" },
         { id: "tmpl_payment_success", name: "Mobile Money Receipt", channel: "SMS & Email" },
     ],
+    momoGateway: {
+        environment: 'sandbox',
+        baseUrl: 'https://sandbox.momodeveloper.mtn.com',
+        currency: 'RWF',
+        targetEnvironment: 'sandbox',
+        apiKey: '',
+        apiUser: '',
+        subscriptionKey: '',
+        enabled: true,
+    },
 };
 
 let LOCAL_SETTINGS_MEMORY: SystemSettings = { ...DEFAULT_SETTINGS };
@@ -85,8 +108,12 @@ class SettingsService {
         try {
             const res = await apiGet<{ success: boolean; data: SystemSettings }>("/admin/settings");
             if (res.success && res.data && res.data.autoAssignment) {
-                LOCAL_SETTINGS_MEMORY = res.data;
-                return res.data;
+                LOCAL_SETTINGS_MEMORY = {
+                    ...DEFAULT_SETTINGS,
+                    ...res.data,
+                    momoGateway: res.data.momoGateway || DEFAULT_SETTINGS.momoGateway
+                };
+                return LOCAL_SETTINGS_MEMORY;
             }
         } catch (e) {
             console.warn("Backend /admin/settings unavailable, using configured settings:", e);
