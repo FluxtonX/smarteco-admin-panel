@@ -86,29 +86,40 @@ export const binService = {
         try {
             const res = await apiGet<{ success: boolean; data: any[] }>('/admin/bins');
             if (res.success && res.data && res.data.length > 0) {
-                return res.data.map(bb => ({
-                    id: bb.qrCode || bb.id,
-                    user: {
-                        name: `${bb.user?.firstName || ''} ${bb.user?.lastName || ''}`.trim() || 'Resident',
-                        address: bb.user?.defaultAddress || bb.user?.address || 'Address Pending'
-                    },
-                    type: mapWasteType(bb.wasteType),
-                    fillLevel: bb.fillLevel || 0,
-                    lastEmptied: bb.lastEmptied ? new Date(bb.lastEmptied).toISOString().split('T')[0] : 'N/A',
-                    alertStatus: calculateAlertStatus(bb.fillLevel || 0),
-                    collector: bb.pickups?.[0]?.collector?.user 
-                        ? `${bb.pickups[0].collector.user.firstName || ''} ${bb.pickups[0].collector.user.lastName || ''}`.trim()
-                        : "Unassigned",
-                    latitude: bb.latitude ?? bb.user?.homeLatitude ?? null,
-                    longitude: bb.longitude ?? bb.user?.homeLongitude ?? null,
-                    history: [
-                        { time: "00:00", level: Math.max(0, (bb.fillLevel || 0) - 40) },
-                        { time: "06:00", level: Math.max(0, (bb.fillLevel || 0) - 20) },
-                        { time: "12:00", level: Math.max(0, (bb.fillLevel || 0) - 10) },
-                        { time: "18:00", level: bb.fillLevel || 0 },
-                        { time: "24:00", level: bb.fillLevel || 0 }
-                    ]
-                }));
+                return res.data.map(bb => {
+                    const lat = bb.latitude ?? bb.user?.homeLatitude ?? null;
+                    const lng = bb.longitude ?? bb.user?.homeLongitude ?? null;
+                    const rawAddress = bb.user?.defaultAddress || bb.user?.address || bb.address;
+                    const address = rawAddress
+                        ? rawAddress
+                        : (lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng))
+                            ? `GPS Coords: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
+                            : 'Address Pending');
+
+                    return {
+                        id: bb.qrCode || bb.id,
+                        user: {
+                            name: `${bb.user?.firstName || ''} ${bb.user?.lastName || ''}`.trim() || 'Resident',
+                            address
+                        },
+                        type: mapWasteType(bb.wasteType),
+                        fillLevel: bb.fillLevel || 0,
+                        lastEmptied: bb.lastEmptied ? new Date(bb.lastEmptied).toISOString().split('T')[0] : 'N/A',
+                        alertStatus: calculateAlertStatus(bb.fillLevel || 0),
+                        collector: bb.pickups?.[0]?.collector?.user 
+                            ? `${bb.pickups[0].collector.user.firstName || ''} ${bb.pickups[0].collector.user.lastName || ''}`.trim()
+                            : "Unassigned",
+                        latitude: lat,
+                        longitude: lng,
+                        history: [
+                            { time: "00:00", level: Math.max(0, (bb.fillLevel || 0) - 40) },
+                            { time: "06:00", level: Math.max(0, (bb.fillLevel || 0) - 20) },
+                            { time: "12:00", level: Math.max(0, (bb.fillLevel || 0) - 10) },
+                            { time: "18:00", level: bb.fillLevel || 0 },
+                            { time: "24:00", level: bb.fillLevel || 0 }
+                        ]
+                    };
+                });
             }
         } catch (e) {
             console.warn("Backend API /admin/bins unreached:", e);

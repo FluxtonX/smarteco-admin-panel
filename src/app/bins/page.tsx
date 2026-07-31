@@ -29,7 +29,6 @@ export default function SmartBinManagementPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedBinForModal, setSelectedBinForModal] = useState<BinRecord | null>(null);
     const [isBinModalOpen, setIsBinModalOpen] = useState(false);
-    const [isMockDataMode, setIsMockDataMode] = useState(false);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -158,8 +157,6 @@ export default function SmartBinManagementPage() {
                                         setSelectedBinForModal(bin);
                                         setIsBinModalOpen(true);
                                     }}
-                                    onToggleDataSource={(useMock) => setIsMockDataMode(useMock)}
-                                    isUsingMockData={isMockDataMode}
                                 />
                                 <div className="overflow-x-auto">
                                     <BinTable
