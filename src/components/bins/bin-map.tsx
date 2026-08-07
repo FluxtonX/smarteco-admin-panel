@@ -25,7 +25,7 @@ interface BinMapProps {
 
 export function BinMap({ bins, onSelectBin }: BinMapProps) {
     const [selectedBinId, setSelectedBinId] = useState<string | null>(null);
-    const [activeFilter, setActiveFilter] = useState<'ALL' | 'CRITICAL' | 'NORMAL'>('ALL');
+    const [activeFilter, setActiveFilter] = useState<'ALL' | 'CRITICAL' | 'NORMAL' | 'SENSORS_ONLY'>('ALL');
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Map each bin with actual coordinates & actual user address from DB
@@ -66,10 +66,14 @@ export function BinMap({ bins, onSelectBin }: BinMapProps) {
         if (activeFilter === 'NORMAL') {
             return mappedBins.filter(b => b.fillLevel < 75);
         }
+        if (activeFilter === 'SENSORS_ONLY') {
+            return mappedBins.filter(b => b.hasSensor);
+        }
         return mappedBins;
     }, [mappedBins, activeFilter]);
 
     const binsWithoutGpsCount = useMemo(() => mappedBins.filter(b => !b.hasGps).length, [mappedBins]);
+    const sensorsInstalledCount = useMemo(() => mappedBins.filter(b => b.hasSensor).length, [mappedBins]);
 
     const handleRefresh = () => {
         setIsRefreshing(true);
@@ -87,7 +91,7 @@ export function BinMap({ bins, onSelectBin }: BinMapProps) {
                     <div>
                         <h3 className="text-[14px] font-bold text-[#1A1A1A]">OpenStreetMap Telemetry & Location Map</h3>
                         <p className="text-[11px] text-[#636E72]">
-                            Displaying {filteredBins.length} smart bins {binsWithoutGpsCount > 0 ? `(${binsWithoutGpsCount} address pending GPS coords)` : ''}
+                            Displaying {filteredBins.length} smart bins ({sensorsInstalledCount} with IoT sensors paired)
                         </p>
                     </div>
                 </div>
@@ -103,6 +107,15 @@ export function BinMap({ bins, onSelectBin }: BinMapProps) {
                             )}
                         >
                             All ({mappedBins.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('SENSORS_ONLY')}
+                            className={cn(
+                                "px-2.5 py-1 rounded-[4px] text-[11px] font-bold transition-all flex items-center gap-1",
+                                activeFilter === 'SENSORS_ONLY' ? "bg-blue-600 text-white" : "text-blue-600 hover:bg-blue-50"
+                            )}
+                        >
+                            Sensors Only ({sensorsInstalledCount})
                         </button>
                         <button
                             onClick={() => setActiveFilter('CRITICAL')}

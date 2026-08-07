@@ -10,13 +10,19 @@ export interface BinRecord {
         name: string;
         address: string;
     };
-    type: 'Organic' | 'Recyclable' | 'E-Waste' | 'Glass' | 'Hazardous';
+    type: 'Organic' | 'Recyclable' | 'General' | 'E-Waste' | 'Glass' | 'Hazardous';
     fillLevel: number;
     lastEmptied: string;
     alertStatus: 'Critical' | 'Full' | 'Nearly Full' | 'Normal';
     collector: string;
     latitude?: number | null;
     longitude?: number | null;
+    hasSensor?: boolean;
+    deviceId?: string | null;
+    distanceMm?: number | null;
+    temperature?: number | null;
+    position?: 'Upright' | 'Tilted' | null;
+    rawWasteType?: string;
     history: { time: string; level: number }[];
 }
 
@@ -67,6 +73,7 @@ function mapWasteType(wType: string): BinRecord['type'] {
     switch (wType) {
         case 'ORGANIC': return 'Organic';
         case 'RECYCLABLE': return 'Recyclable';
+        case 'GENERAL': return 'General';
         case 'EWASTE': return 'E-Waste';
         case 'GLASS': return 'Glass';
         case 'HAZARDOUS': return 'Hazardous';
@@ -103,6 +110,7 @@ export const binService = {
                             address
                         },
                         type: mapWasteType(bb.wasteType),
+                        rawWasteType: bb.wasteType,
                         fillLevel: bb.fillLevel || 0,
                         lastEmptied: bb.lastEmptied ? new Date(bb.lastEmptied).toISOString().split('T')[0] : 'N/A',
                         alertStatus: calculateAlertStatus(bb.fillLevel || 0),
@@ -111,6 +119,11 @@ export const binService = {
                             : "Unassigned",
                         latitude: lat,
                         longitude: lng,
+                        hasSensor: bb.hasSensor ?? !!bb.iotDevice,
+                        deviceId: bb.deviceId ?? bb.iotDevice?.deviceId ?? null,
+                        distanceMm: bb.distanceMm ?? null,
+                        temperature: bb.temperature ?? null,
+                        position: bb.position ?? null,
                         history: [
                             { time: "00:00", level: Math.max(0, (bb.fillLevel || 0) - 40) },
                             { time: "06:00", level: Math.max(0, (bb.fillLevel || 0) - 20) },
@@ -217,5 +230,9 @@ export const binService = {
 
     scanBin: async (dto: ScanBinDto): Promise<GenericResponse> => {
         return apiPost<GenericResponse>('/bins/scan', dto);
+    },
+
+    createBin: async (payload: { userId: string; wasteTypes?: string[]; deviceId?: string; latitude?: number; longitude?: number }): Promise<GenericResponse> => {
+        return apiPost<GenericResponse>('/admin/bins', payload);
     }
 };

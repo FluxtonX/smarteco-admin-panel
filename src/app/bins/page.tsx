@@ -12,9 +12,10 @@ import { LiveStatus } from "@/components/ui/live-status";
 
 import { BinMap } from "@/components/bins/bin-map";
 import { BinDetailsModal } from "@/components/bins/bin-details-modal";
+import { CreateBinModal } from "@/components/bins/create-bin-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, MapPin, FileText, Download, AlertCircle, Clock, Activity, ClipboardList } from "lucide-react";
+import { Search, ChevronDown, MapPin, FileText, Download, AlertCircle, Clock, Activity, ClipboardList, Plus } from "lucide-react";
 import { binService, BinRecord, BinStats as BinStatsData } from "@/services/bin.service";
 import { useSearch } from "@/context/search-context";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ export default function SmartBinManagementPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedBinForModal, setSelectedBinForModal] = useState<BinRecord | null>(null);
     const [isBinModalOpen, setIsBinModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -82,10 +84,19 @@ export default function SmartBinManagementPage() {
                                 Real-time monitoring of {bins.length} smart bins
                             </p>
                         </div>
-                        <Button className="h-10 bg-[#DCFCE7] text-[#166534] border border-[#166534]/20 font-bold hover:bg-[#bbf7d0] rounded-[4px] px-6 flex items-center justify-center space-x-2 transition-all shadow-sm w-full sm:w-auto">
-                            <Download className="w-4 h-4 text-[#166534]" />
-                            <span className="text-[11px] uppercase tracking-wider">Export Report</span>
-                        </Button>
+                        <div className="flex items-center space-x-2 w-full sm:w-auto">
+                            <Button 
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="h-10 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-[4px] px-5 flex items-center justify-center space-x-2 transition-all shadow-sm flex-1 sm:flex-initial"
+                            >
+                                <Plus className="w-4 h-4 text-white" />
+                                <span className="text-[11px] uppercase tracking-wider">Provision Bins</span>
+                            </Button>
+                            <Button className="h-10 bg-[#DCFCE7] text-[#166534] border border-[#166534]/20 font-bold hover:bg-[#bbf7d0] rounded-[4px] px-6 flex items-center justify-center space-x-2 transition-all shadow-sm flex-1 sm:flex-initial">
+                                <Download className="w-4 h-4 text-[#166534]" />
+                                <span className="text-[11px] uppercase tracking-wider">Export Report</span>
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Tab Navigation - Scrollable on mobile */}
@@ -184,6 +195,11 @@ export default function SmartBinManagementPage() {
                 isOpen={isBinModalOpen}
                 onClose={() => setIsBinModalOpen(false)}
                 onBinUpdated={loadData}
+            />
+            <CreateBinModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={loadData}
             />
         </div>
     );
