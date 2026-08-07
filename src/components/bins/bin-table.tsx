@@ -34,9 +34,11 @@ export function BinTable({ bins, isLoading, onBinUpdated }: BinTableProps) {
         switch (type) {
             case 'Organic': return "bg-[#DCFCE7] text-[#166534] border-none";
             case 'Recyclable': return "bg-[#DBEAFE] text-[#1E40AF] border-none";
+            case 'General': return "bg-[#F3F4F6] text-[#374151] border-none";
             case 'E-Waste': return "bg-[#F3E8FF] text-[#6B21A8] border-none";
             case 'Glass': return "bg-[#E0F2FE] text-[#075985] border-none";
             case 'Hazardous': return "bg-[#FEE2E2] text-[#991B1B] border-none";
+            case 'Landfill': return "bg-[#FEE2E2] text-[#991B1B] border-none";
             default: return "bg-gray-100 text-gray-700 border-none";
         }
     };

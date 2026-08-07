@@ -32,6 +32,7 @@ export function CreateBinModal({ isOpen, onClose, onSuccess }: CreateBinModalPro
         ORGANIC: true,      // Compost
         EWASTE: false,      // Optional E-Waste
         HAZARDOUS: false,   // Optional Hazardous
+        LANDFILL: false,    // Optional Landfill
     });
 
     useEffect(() => {
@@ -195,6 +196,17 @@ export function CreateBinModal({ isOpen, onClose, onSuccess }: CreateBinModalPro
                                         <div className="text-xs font-bold text-blue-900">E-Waste (Electronics & Batteries)</div>
                                     </div>
                                     <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">Optional Add-on</span>
+                                </label>
+
+                                <label className="flex items-center justify-between p-2 bg-white rounded border border-gray-200 cursor-pointer hover:border-amber-300 transition-all">
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            checked={selectedWasteTypes.LANDFILL}
+                                            onCheckedChange={() => toggleWasteType("LANDFILL")}
+                                        />
+                                        <div className="text-xs font-bold text-amber-900">Landfill Direct Waste</div>
+                                    </div>
+                                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Optional Add-on</span>
                                 </label>
 
                                 <label className="flex items-center justify-between p-2 bg-white rounded border border-gray-200 cursor-pointer hover:border-rose-300 transition-all">

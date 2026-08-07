@@ -10,7 +10,7 @@ export interface BinRecord {
         name: string;
         address: string;
     };
-    type: 'Organic' | 'Recyclable' | 'General' | 'E-Waste' | 'Glass' | 'Hazardous';
+    type: 'Organic' | 'Recyclable' | 'General' | 'E-Waste' | 'Glass' | 'Hazardous' | 'Landfill';
     fillLevel: number;
     lastEmptied: string;
     alertStatus: 'Critical' | 'Full' | 'Nearly Full' | 'Normal';
@@ -77,7 +77,8 @@ function mapWasteType(wType: string): BinRecord['type'] {
         case 'EWASTE': return 'E-Waste';
         case 'GLASS': return 'Glass';
         case 'HAZARDOUS': return 'Hazardous';
-        default: return 'Organic';
+        case 'LANDFILL': return 'Landfill';
+        default: return 'General';
     }
 }
 
