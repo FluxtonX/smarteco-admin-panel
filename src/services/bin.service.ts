@@ -46,6 +46,11 @@ export interface AssignmentRecord {
     collector: string;
     assignedAt: string;
     status: 'In Progress' | 'Completed' | 'Pending';
+    reference?: string;
+    address?: string;
+    notes?: string;
+    scheduledDate?: string;
+    timeSlot?: string;
 }
 
 interface ReportBinDto {
@@ -93,7 +98,7 @@ export const binService = {
     getBins: async (): Promise<BinRecord[]> => {
         try {
             const res = await apiGet<{ success: boolean; data: any[] }>('/admin/bins');
-            if (res.success && res.data && res.data.length > 0) {
+            if (res.success && res.data && Array.isArray(res.data)) {
                 return res.data.map(bb => {
                     const lat = bb.latitude ?? bb.user?.homeLatitude ?? null;
                     const lng = bb.longitude ?? bb.user?.homeLongitude ?? null;
@@ -103,6 +108,13 @@ export const binService = {
                         : (lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng))
                             ? `GPS Coords: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
                             : 'Address Pending');
+
+                    const pickupCollector = bb.pickups?.[0]?.collector;
+                    const collectorName = pickupCollector
+                        ? (pickupCollector.user 
+                            ? `${pickupCollector.user.firstName || ''} ${pickupCollector.user.lastName || ''}`.trim()
+                            : pickupCollector.name || pickupCollector.collectorName || "Assigned Collector")
+                        : "Unassigned";
 
                     return {
                         id: bb.qrCode || bb.id,
@@ -115,9 +127,7 @@ export const binService = {
                         fillLevel: bb.fillLevel || 0,
                         lastEmptied: bb.lastEmptied ? new Date(bb.lastEmptied).toISOString().split('T')[0] : 'N/A',
                         alertStatus: calculateAlertStatus(bb.fillLevel || 0),
-                        collector: bb.pickups?.[0]?.collector?.user 
-                            ? `${bb.pickups[0].collector.user.firstName || ''} ${bb.pickups[0].collector.user.lastName || ''}`.trim()
-                            : "Unassigned",
+                        collector: collectorName,
                         latitude: lat,
                         longitude: lng,
                         hasSensor: bb.hasSensor ?? !!bb.iotDevice,
@@ -125,13 +135,18 @@ export const binService = {
                         distanceMm: bb.distanceMm ?? null,
                         temperature: bb.temperature ?? null,
                         position: bb.position ?? null,
-                        history: [
-                            { time: "00:00", level: Math.max(0, (bb.fillLevel || 0) - 40) },
-                            { time: "06:00", level: Math.max(0, (bb.fillLevel || 0) - 20) },
-                            { time: "12:00", level: Math.max(0, (bb.fillLevel || 0) - 10) },
-                            { time: "18:00", level: bb.fillLevel || 0 },
-                            { time: "24:00", level: bb.fillLevel || 0 }
-                        ]
+                        history: bb.telemetry && bb.telemetry.length > 0
+                            ? bb.telemetry.map((t: any) => ({
+                                time: new Date(t.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                level: t.fillLevel ?? 0
+                              }))
+                            : [
+                                { time: "00:00", level: Math.max(0, (bb.fillLevel || 0) - 30) },
+                                { time: "06:00", level: Math.max(0, (bb.fillLevel || 0) - 15) },
+                                { time: "12:00", level: Math.max(0, (bb.fillLevel || 0) - 5) },
+                                { time: "18:00", level: bb.fillLevel || 0 },
+                                { time: "24:00", level: bb.fillLevel || 0 }
+                            ]
                     };
                 });
             }
@@ -184,8 +199,8 @@ export const binService = {
         const bins = await binService.getBins();
         return {
             total: bins.length,
-            alerts: bins.filter(b => b.fillLevel >= 75).length,
-            active: bins.filter(b => b.fillLevel < 75).length,
+            alerts: bins.filter(b => b.fillLevel >= 60).length,
+            active: bins.filter(b => b.fillLevel < 60).length,
             maintenance: 0
         };
     },
@@ -196,16 +211,30 @@ export const binService = {
             if (res.success && res.data && res.data.length > 0) {
                 return res.data
                   .filter((pickup) => pickup.bin?.qrCode || pickup.reference)
-                  .map((pickup) => ({
-                    binId: pickup.bin?.qrCode || pickup.reference,
-                    collector: pickup.collector ? `${pickup.collector.user?.firstName || ''} ${pickup.collector.user?.lastName || ''}`.trim() : "Unassigned",
-                    assignedAt: pickup.createdAt
-                      ? new Date(pickup.createdAt).toISOString().slice(0, 16).replace('T', ' ')
-                      : "",
-                    status: pickup.status === "COMPLETED" ? "Completed" : pickup.collector ? "In Progress" : "Pending"
-                }));
+                  .map((pickup) => {
+                    const collectorName = pickup.collector?.name ||
+                      (pickup.collector?.user 
+                        ? `${pickup.collector.user.firstName || ''} ${pickup.collector.user.lastName || ''}`.trim()
+                        : null);
+
+                    return {
+                      binId: pickup.bin?.qrCode || pickup.reference,
+                      collector: collectorName || "Unassigned",
+                      assignedAt: pickup.createdAt
+                        ? new Date(pickup.createdAt).toISOString().slice(0, 16).replace('T', ' ')
+                        : "",
+                      status: pickup.status === "COMPLETED" ? "Completed" : pickup.collector ? "In Progress" : "Pending",
+                      reference: pickup.reference,
+                      address: pickup.address || pickup.bin?.user?.defaultAddress || "Kigali, Rwanda",
+                      notes: pickup.notes || undefined,
+                      scheduledDate: pickup.scheduledDate ? new Date(pickup.scheduledDate).toISOString().slice(0, 10) : undefined,
+                      timeSlot: pickup.timeSlot || undefined
+                    };
+                  });
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn("Failed to fetch pickup assignments:", e);
+        }
         return [];
     },
 

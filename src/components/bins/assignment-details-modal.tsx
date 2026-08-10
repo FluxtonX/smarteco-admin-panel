@@ -16,10 +16,10 @@ export function AssignmentDetailsModal({ assignment, isOpen, onClose }: Assignme
     if (!assignment) return null;
 
     const timeline = [
-        { status: "Assigned", time: assignment.assignedAt, done: true },
-        { status: "Dispatched", time: "2024-02-24 08:35", done: assignment.status !== 'Pending' },
-        { status: "In Transit", time: "2024-02-24 08:45", done: assignment.status === 'Completed' || assignment.status === 'In Progress' },
-        { status: "Completed", time: "2024-02-24 09:15", done: assignment.status === 'Completed' },
+        { status: "Assigned", time: assignment.assignedAt || "Pending", done: true },
+        { status: "Dispatched", time: assignment.status !== 'Pending' ? assignment.assignedAt : "Awaiting dispatch", done: assignment.status !== 'Pending' },
+        { status: "In Transit", time: (assignment.status === 'Completed' || assignment.status === 'In Progress') ? assignment.assignedAt : "Pending", done: assignment.status === 'Completed' || assignment.status === 'In Progress' },
+        { status: "Completed", time: assignment.status === 'Completed' ? assignment.assignedAt : "Pending", done: assignment.status === 'Completed' },
     ];
 
     const getStatusVariant = (status: string) => {
@@ -35,7 +35,7 @@ export function AssignmentDetailsModal({ assignment, isOpen, onClose }: Assignme
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-            <div className="bg-white w-[800px] rounded-[12px] shadow-2xl relative animate-in zoom-in duration-200 overflow-hidden">
+            <div className="bg-white w-[800px] rounded-[12px] shadow-2xl relative animate-in zoom-in duration-200 overflow-hidden font-sans">
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div className="space-y-1">
@@ -81,9 +81,9 @@ export function AssignmentDetailsModal({ assignment, isOpen, onClose }: Assignme
                                 <h4 className="text-[12px] font-bold uppercase tracking-widest">Target Destination</h4>
                             </div>
                             <div className="space-y-1">
-                                <div className="text-[15px] font-bold text-[#1A1A1A]">Kigali North District, Hub 04</div>
+                                <div className="text-[15px] font-bold text-[#1A1A1A]">{assignment.address || "Kigali, Rwanda"}</div>
                                 <p className="text-[12px] text-gray-500 font-medium leading-relaxed">
-                                    Near the main marketplace entrance, Sector A. Access code for smart lock: <span className="text-[#1A1A1A] font-bold">#4492</span>
+                                    {assignment.notes || (assignment.reference ? `Pickup Ref: ${assignment.reference}` : "Regular scheduled waste collection dispatch.")}
                                 </p>
                             </div>
                         </div>

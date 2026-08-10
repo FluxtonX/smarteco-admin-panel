@@ -39,38 +39,49 @@ export function BinSensorData() {
     }, []);
 
     // Calculate real type distribution
+    // Calculate real type distribution
     const organicCount = bins.filter(b => b.type === 'Organic').length;
     const recyclableCount = bins.filter(b => b.type === 'Recyclable').length;
+    const generalCount = bins.filter(b => b.type === 'General').length;
     const ewasteCount = bins.filter(b => b.type === 'E-Waste').length;
     const glassCount = bins.filter(b => b.type === 'Glass').length;
     const hazardousCount = bins.filter(b => b.type === 'Hazardous').length;
+    const landfillCount = bins.filter(b => b.type === 'Landfill').length;
 
     const distributionData = [
-        { name: "Organic", count: organicCount || 5 },
-        { name: "Recyclable", count: recyclableCount || 4 },
-        { name: "E-Waste", count: ewasteCount || 2 },
-        { name: "Glass", count: glassCount || 1.5 },
-        { name: "Hazardous", count: hazardousCount || 1 },
+        { name: "Organic", count: organicCount },
+        { name: "Recyclable", count: recyclableCount },
+        { name: "General", count: generalCount },
+        { name: "E-Waste", count: ewasteCount },
+        { name: "Glass", count: glassCount },
+        { name: "Hazardous", count: hazardousCount },
+        { name: "Landfill", count: landfillCount },
     ];
 
-    // Calculate real fill level trend across 24h
+    // Calculate real fill level trend across 24h from DB telemetries/bins
     const trendData = [
-        { time: "00:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[0]?.level || 25), 0) / (bins.length || 1)) },
-        { time: "04:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[1]?.level || 35), 0) / (bins.length || 1)) },
-        { time: "08:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[2]?.level || 50), 0) / (bins.length || 1)) },
-        { time: "12:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[3]?.level || 65), 0) / (bins.length || 1)) },
-        { time: "16:00", level: Math.round(bins.reduce((acc, b) => acc + (b.fillLevel || 75), 0) / (bins.length || 1)) },
-        { time: "20:00", level: Math.round(bins.reduce((acc, b) => acc + (b.fillLevel || 80), 0) / (bins.length || 1)) },
-        { time: "24:00", level: Math.round(bins.reduce((acc, b) => acc + (b.fillLevel || 85), 0) / (bins.length || 1)) },
+        { time: "00:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[0]?.level ?? Math.max(0, b.fillLevel - 30)), 0) / (bins.length || 1)) },
+        { time: "04:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[1]?.level ?? Math.max(0, b.fillLevel - 20)), 0) / (bins.length || 1)) },
+        { time: "08:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[2]?.level ?? Math.max(0, b.fillLevel - 10)), 0) / (bins.length || 1)) },
+        { time: "12:00", level: Math.round(bins.reduce((acc, b) => acc + (b.history?.[3]?.level ?? Math.max(0, b.fillLevel - 5)), 0) / (bins.length || 1)) },
+        { time: "16:00", level: Math.round(bins.reduce((acc, b) => acc + (b.fillLevel ?? 0), 0) / (bins.length || 1)) },
+        { time: "20:00", level: Math.round(bins.reduce((acc, b) => acc + (b.fillLevel ?? 0), 0) / (bins.length || 1)) },
+        { time: "24:00", level: Math.round(bins.reduce((acc, b) => acc + (b.fillLevel ?? 0), 0) / (bins.length || 1)) },
     ];
 
     const typeStats = [
-        { label: "Organic", count: organicCount, avgFill: `${Math.round(bins.filter(b => b.type === 'Organic').reduce((acc, b) => acc + b.fillLevel, 0) / (organicCount || 1))}%` },
-        { label: "Recyclable", count: recyclableCount, avgFill: `${Math.round(bins.filter(b => b.type === 'Recyclable').reduce((acc, b) => acc + b.fillLevel, 0) / (recyclableCount || 1))}%` },
-        { label: "E-Waste", count: ewasteCount, avgFill: `${Math.round(bins.filter(b => b.type === 'E-Waste').reduce((acc, b) => acc + b.fillLevel, 0) / (ewasteCount || 1))}%` },
-        { label: "Glass", count: glassCount, avgFill: `${Math.round(bins.filter(b => b.type === 'Glass').reduce((acc, b) => acc + b.fillLevel, 0) / (glassCount || 1))}%` },
-        { label: "Hazardous", count: hazardousCount, avgFill: `${Math.round(bins.filter(b => b.type === 'Hazardous').reduce((acc, b) => acc + b.fillLevel, 0) / (hazardousCount || 1))}%` },
+        { label: "Organic", count: organicCount, avgFill: `${organicCount > 0 ? Math.round(bins.filter(b => b.type === 'Organic').reduce((acc, b) => acc + b.fillLevel, 0) / organicCount) : 0}%` },
+        { label: "Recyclable", count: recyclableCount, avgFill: `${recyclableCount > 0 ? Math.round(bins.filter(b => b.type === 'Recyclable').reduce((acc, b) => acc + b.fillLevel, 0) / recyclableCount) : 0}%` },
+        { label: "General", count: generalCount, avgFill: `${generalCount > 0 ? Math.round(bins.filter(b => b.type === 'General').reduce((acc, b) => acc + b.fillLevel, 0) / generalCount) : 0}%` },
+        { label: "E-Waste", count: ewasteCount, avgFill: `${ewasteCount > 0 ? Math.round(bins.filter(b => b.type === 'E-Waste').reduce((acc, b) => acc + b.fillLevel, 0) / ewasteCount) : 0}%` },
+        { label: "Glass", count: glassCount, avgFill: `${glassCount > 0 ? Math.round(bins.filter(b => b.type === 'Glass').reduce((acc, b) => acc + b.fillLevel, 0) / glassCount) : 0}%` },
+        { label: "Hazardous", count: hazardousCount, avgFill: `${hazardousCount > 0 ? Math.round(bins.filter(b => b.type === 'Hazardous').reduce((acc, b) => acc + b.fillLevel, 0) / hazardousCount) : 0}%` },
     ];
+
+    const sensorBinsCount = bins.filter(b => b.hasSensor).length;
+    const reportedTemps = bins.map(b => b.temperature).filter((t): t is number => t != null);
+    const avgTemp = reportedTemps.length > 0 ? (reportedTemps.reduce((a, b) => a + b, 0) / reportedTemps.length).toFixed(1) : "24.0";
+    const hazardsCount = bins.filter(b => b.position === 'Tilted' || (b.temperature != null && b.temperature > 50)).length;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 font-sans">
@@ -82,7 +93,7 @@ export function BinSensorData() {
                     </div>
                     <div>
                         <div className="text-[10px] font-bold uppercase text-emerald-800 tracking-wider">Active Telemetry Bins</div>
-                        <div className="text-xl font-extrabold text-emerald-950">{bins.length || 31} Bins</div>
+                        <div className="text-xl font-extrabold text-emerald-950">{bins.length} Bins</div>
                     </div>
                 </Card>
 
@@ -92,7 +103,9 @@ export function BinSensorData() {
                     </div>
                     <div>
                         <div className="text-[10px] font-bold uppercase text-blue-800 tracking-wider">LoRaWAN Gateways</div>
-                        <div className="text-xl font-extrabold text-blue-950">EU868 (100% Online)</div>
+                        <div className="text-xl font-extrabold text-blue-950">
+                            {sensorBinsCount > 0 ? `${sensorBinsCount} Sensors Active` : 'EU868 (Online)'}
+                        </div>
                     </div>
                 </Card>
 
@@ -102,7 +115,7 @@ export function BinSensorData() {
                     </div>
                     <div>
                         <div className="text-[10px] font-bold uppercase text-amber-800 tracking-wider">Avg Internal Temp</div>
-                        <div className="text-xl font-extrabold text-amber-950">24.2°C (Normal)</div>
+                        <div className="text-xl font-extrabold text-amber-950">{avgTemp}°C (Normal)</div>
                     </div>
                 </Card>
 
@@ -112,7 +125,7 @@ export function BinSensorData() {
                     </div>
                     <div>
                         <div className="text-[10px] font-bold uppercase text-rose-800 tracking-wider">Fire / Tilt Safety</div>
-                        <div className="text-xl font-extrabold text-rose-950">0 Hazards Detected</div>
+                        <div className="text-xl font-extrabold text-rose-950">{hazardsCount} Hazards Detected</div>
                     </div>
                 </Card>
             </div>
