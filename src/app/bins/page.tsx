@@ -32,8 +32,8 @@ export default function SmartBinManagementPage() {
     const [isBinModalOpen, setIsBinModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    const loadData = useCallback(async () => {
-        setIsLoading(true);
+    const loadData = useCallback(async (showSpinner = true) => {
+        if (showSpinner) setIsLoading(true);
         try {
             const [binsData, statsData] = await Promise.all([
                 binService.getBins(),
@@ -44,12 +44,19 @@ export default function SmartBinManagementPage() {
         } catch (error) {
             console.error("Failed to load bin data:", error);
         } finally {
-            setIsLoading(false);
+            if (showSpinner) setIsLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        loadData();
+        loadData(true);
+
+        // Auto-refresh bin data every 15 seconds for near-real-time IoT updates
+        const intervalId = setInterval(() => {
+            loadData(false);
+        }, 15000);
+
+        return () => clearInterval(intervalId);
     }, [loadData]);
 
     const filteredBinsBySearch = bins.filter(b =>

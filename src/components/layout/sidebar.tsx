@@ -16,7 +16,8 @@ import {
     UserCog,
     History,
     Package,
-    Shield
+    Shield,
+    Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCurrentUserRole, hasRoutePermission, AdminRole } from "@/lib/permissions";
@@ -28,6 +29,7 @@ const menuItems = [
     { icon: Truck, label: "Collectors", href: "/collectors" },
     { icon: Package, label: "Pickup Management", href: "/pickups" },
     { icon: Trash2, label: "Smart Bins (IoT)", href: "/bins" },
+    { icon: Sparkles, label: "AI Sorting", href: "/sorting" },
     { icon: Award, label: "EcoPoints & Rewards", href: "/rewards" },
     { icon: CreditCard, label: "Payments", href: "/payments" },
     { icon: Share2, label: "Referral System", href: "/referrals" },
