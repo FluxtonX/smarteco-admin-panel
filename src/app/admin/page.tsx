@@ -19,10 +19,12 @@ import { Plus, X, UserPlus } from "lucide-react";
 
 const ROLES: AdminRole[] = [
     "Super Admin",
+    "Waste Management (COPED)",
     "Operations Manager",
     "Finance Admin",
     "IoT Supervisor",
     "Support Agent",
+    "Customer",
 ];
 
 export default function AdminManagementPage() {

@@ -1,6 +1,7 @@
 import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/api-client";
 
-export type AdminRole = "Super Admin" | "Operations Manager" | "Finance Admin" | "IoT Supervisor" | "Support Agent";
+import { AdminRole } from "@/lib/permissions";
+export type { AdminRole };
 export type AdminStatus = "Active" | "Inactive";
 
 export interface AdminRecord {

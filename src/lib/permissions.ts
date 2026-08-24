@@ -1,6 +1,8 @@
 export type AdminRole =
     | "Super Admin"
     | "SUPER_ADMIN"
+    | "Waste Management (COPED)"
+    | "WASTE_MANAGEMENT_COPED"
     | "Operations Manager"
     | "OPERATIONS_MANAGER"
     | "Finance Admin"
@@ -8,7 +10,9 @@ export type AdminRole =
     | "IoT Supervisor"
     | "IOT_SUPERVISOR"
     | "Support Agent"
-    | "SUPPORT_AGENT";
+    | "SUPPORT_AGENT"
+    | "Customer"
+    | "CUSTOMER";
 
 export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "Super Admin": [
@@ -39,7 +43,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
         "/settings",
         "/admin",
     ],
-    "Operations Manager": [
+    "Waste Management (COPED)": [
         "/dashboard",
         "/users",
         "/collectors",
@@ -47,6 +51,31 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
         "/bins",
         "/sorting",
         "/rewards",
+        "/payments",
+        "/referrals",
+        "/reports",
+        "/settings",
+    ],
+    "WASTE_MANAGEMENT_COPED": [
+        "/dashboard",
+        "/users",
+        "/collectors",
+        "/pickups",
+        "/bins",
+        "/sorting",
+        "/rewards",
+        "/payments",
+        "/referrals",
+        "/reports",
+        "/settings",
+    ],
+    "Operations Manager": [
+        "/dashboard",
+        "/users",
+        "/collectors",
+        "/pickups",
+        "/bins",
+        "/sorting",
         "/reports",
     ],
     "OPERATIONS_MANAGER": [
@@ -56,7 +85,20 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
         "/pickups",
         "/bins",
         "/sorting",
-        "/rewards",
+        "/reports",
+    ],
+    "Customer": [
+        "/dashboard",
+        "/collectors",
+        "/bins",
+        "/sorting",
+        "/reports",
+    ],
+    "CUSTOMER": [
+        "/dashboard",
+        "/collectors",
+        "/bins",
+        "/sorting",
         "/reports",
     ],
     "Finance Admin": [
@@ -120,4 +162,33 @@ export function hasRoutePermission(role: AdminRole, href: string): boolean {
     if (role === "Super Admin" || role === "SUPER_ADMIN") return true;
     const allowedRoutes = ROLE_PERMISSIONS[role] || [];
     return allowedRoutes.includes(href);
+}
+
+export function isReadOnlyRole(role: AdminRole): boolean {
+    return (
+        role === "Operations Manager" ||
+        role === "OPERATIONS_MANAGER" ||
+        role === "Customer" ||
+        role === "CUSTOMER"
+    );
+}
+
+export function canCreateAccountType(currentRole: AdminRole, targetRole: string): boolean {
+    if (currentRole === "Super Admin" || currentRole === "SUPER_ADMIN") return true;
+    if (currentRole === "Waste Management (COPED)" || currentRole === "WASTE_MANAGEMENT_COPED") {
+        const allowedTargets = [
+            "Operations Manager",
+            "OPERATIONS_MANAGER",
+            "IoT Supervisor",
+            "IOT_SUPERVISOR",
+            "Finance Admin",
+            "FINANCE_ADMIN",
+            "Support Agent",
+            "SUPPORT_AGENT",
+            "Customer",
+            "CUSTOMER",
+        ];
+        return allowedTargets.includes(targetRole);
+    }
+    return false;
 }

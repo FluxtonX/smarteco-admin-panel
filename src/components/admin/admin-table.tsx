@@ -20,12 +20,21 @@ interface AdminTableProps {
     onDelete?: (id: string) => void;
 }
 
-const ROLE_STYLES: Record<AdminRole, string> = {
+const ROLE_STYLES: Record<string, string> = {
     "Super Admin": "bg-red-100 text-red-700 border border-red-200",
+    "SUPER_ADMIN": "bg-red-100 text-red-700 border border-red-200",
+    "Waste Management (COPED)": "bg-purple-100 text-purple-700 border border-purple-200",
+    "WASTE_MANAGEMENT_COPED": "bg-purple-100 text-purple-700 border border-purple-200",
     "Operations Manager": "bg-blue-100 text-blue-700 border border-blue-200",
+    "OPERATIONS_MANAGER": "bg-blue-100 text-blue-700 border border-blue-200",
     "Finance Admin": "bg-teal-100 text-teal-700 border border-teal-200",
+    "FINANCE_ADMIN": "bg-teal-100 text-teal-700 border border-teal-200",
     "IoT Supervisor": "bg-indigo-100 text-indigo-700 border border-indigo-200",
+    "IOT_SUPERVISOR": "bg-indigo-100 text-indigo-700 border border-indigo-200",
     "Support Agent": "bg-orange-100 text-orange-700 border border-orange-200",
+    "SUPPORT_AGENT": "bg-orange-100 text-orange-700 border border-orange-200",
+    "Customer": "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    "CUSTOMER": "bg-emerald-100 text-emerald-700 border border-emerald-200",
 };
 
 export function AdminTable({ admins, onEdit, onDelete }: AdminTableProps) {
