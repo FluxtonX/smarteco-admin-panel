@@ -249,7 +249,7 @@ export function UserDetailsModal({ user, isOpen, onClose, onUserUpdated }: UserD
                                 )}
                             >
                                 {isSuspended ? <CheckCircle className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
-                                <span>{isSuspended ? "Activate Account" : "Suspend Account"}</span>
+                                <span>{isSuspended ? "Approve / Activate Account" : "Suspend / Reject Account"}</span>
                             </Button>
                         )}
                     </div>

@@ -163,6 +163,19 @@ export function UserTable({ users, isLoading, onUsersChanged }: UserTableProps) 
                             </TableCell>
                             <TableCell className="px-6 text-right whitespace-nowrap">
                                 <div className="flex items-center justify-end space-x-2">
+                                    {/* Approve / Suspend User Toggle */}
+                                    <button
+                                        onClick={() => handleToggleStatus(user)}
+                                        title={user.status === "Active" ? "Suspend / Reject User" : "Approve / Activate User"}
+                                        className={cn(
+                                            "p-1.5 rounded-[4px] border shadow-sm transition-all",
+                                            user.status === "Active"
+                                                ? "hover:bg-amber-50 text-[#B2BEC3] hover:text-amber-700 border-gray-100 hover:border-amber-200"
+                                                : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                        )}
+                                    >
+                                        {user.status === "Active" ? <Ban className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                    </button>
                                     {/* View Details */}
                                     <button
                                         onClick={() => { setSelectedUser(user); setIsDetailsOpen(true); }}
