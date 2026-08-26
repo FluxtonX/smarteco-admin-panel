@@ -28,6 +28,11 @@ export default function LoginPage() {
       const response = await authService.adminLogin(email, password);
       if (response.success && response.data.accessToken) {
         localStorage.setItem("smarteco_token", response.data.accessToken);
+        if (response.data.user) {
+          const userRole = response.data.user.subRole || response.data.user.role || "Super Admin";
+          localStorage.setItem("smarteco_admin_role", userRole);
+          localStorage.setItem("smarteco_user", JSON.stringify(response.data.user));
+        }
         router.push("/dashboard");
       } else {
         setAuthError("Authentication failed. No access token received.");

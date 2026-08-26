@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 import { SearchProvider } from "@/context/search-context";
 import { Toaster } from "@/components/ui/toaster";
+import { RouteGuard } from "@/components/auth/route-guard";
 
 export default function RootLayout({
   children,
@@ -18,7 +19,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <SearchProvider>
-          {children}
+          <RouteGuard>
+            {children}
+          </RouteGuard>
         </SearchProvider>
         <Toaster />
       </body>

@@ -19,6 +19,8 @@ import { useEffect, useState } from "react";
 import { userService, UserProfile } from "@/services/user.service";
 import { notificationService, Notification } from "@/services/notification.service";
 import { systemService } from "@/services/system.service";
+import { authService } from "@/services/auth.service";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface TopbarProps {
@@ -27,16 +29,36 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
     const { searchQuery, setSearchQuery } = useSearch();
+    const router = useRouter();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [systemStatus, setSystemStatus] = useState<"UP" | "DOWN">("UP");
 
     useEffect(() => {
+        // First check local storage for instant render
+        if (typeof window !== "undefined") {
+            const cachedUser = localStorage.getItem("smarteco_user");
+            if (cachedUser) {
+                try {
+                    setProfile(JSON.parse(cachedUser));
+                } catch { }
+            }
+        }
+
         userService.getProfile()
-            .then((data) => setProfile(data))
+            .then((data) => {
+                if (data) {
+                    setProfile(data);
+                    if (typeof window !== "undefined") {
+                        localStorage.setItem("smarteco_user", JSON.stringify(data));
+                        if ((data as any).subRole) {
+                            localStorage.setItem("smarteco_admin_role", (data as any).subRole);
+                        }
+                    }
+                }
+            })
             .catch((err) => {
                 console.error("Topbar: Failed to fetch user profile:", err.message);
-                // Silently fail — topbar stays functional with fallback values
             });
 
         notificationService.getNotifications()
@@ -57,8 +79,8 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     const displayName = profile
-        ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "Admin"
-        : "Admin";
+        ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") || profile.email?.split("@")[0] || "Administrator"
+        : "Administrator";
 
     const initials = displayName
         .split(" ")
@@ -67,7 +89,22 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         .toUpperCase()
         .slice(0, 2);
 
-    const roleLabel = profile?.role ?? "Admin";
+    const roleLabel = profile?.subRole || profile?.role || (typeof window !== "undefined" ? localStorage.getItem("smarteco_admin_role") : null) || "Administrator";
+
+    const handleSignOut = async () => {
+        try {
+            await authService.logout();
+        } catch (e) {
+            console.error("Sign out error", e);
+        } finally {
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("smarteco_token");
+                localStorage.removeItem("smarteco_admin_role");
+                localStorage.removeItem("smarteco_user");
+            }
+            router.push("/login");
+        }
+    };
 
     return (
         <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 shadow-sm">
@@ -81,9 +118,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 >
                     <Menu className="h-6 w-6 text-gray-600" />
                 </Button>
-
-
-
             </div>
 
             {/* Right Actions Section */}
@@ -147,7 +181,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                         <DropdownMenuItem className="cursor-default opacity-50">Security Status</DropdownMenuItem>
                         <DropdownMenuItem className="cursor-default opacity-50">Admin Logs</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600 font-semibold">Sign Out</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSignOut} className="text-red-600 font-semibold cursor-pointer">
+                            Sign Out
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

@@ -149,6 +149,16 @@ export function getCurrentUserRole(): AdminRole {
     if (savedRole && ROLE_PERMISSIONS[savedRole]) {
         return savedRole;
     }
+    const savedUser = localStorage.getItem("smarteco_user");
+    if (savedUser) {
+        try {
+            const parsed = JSON.parse(savedUser);
+            const role = parsed.subRole || parsed.role;
+            if (role && ROLE_PERMISSIONS[role]) {
+                return role as AdminRole;
+            }
+        } catch { }
+    }
     return "Super Admin";
 }
 

@@ -108,7 +108,7 @@ export default function AdminProfilePage() {
                                         </AvatarFallback>
                                     </Avatar>
                                     <h2 className="text-xl font-bold text-gray-900">{profile?.firstName} {profile?.lastName}</h2>
-                                    <p className="text-sm font-bold text-primary-green uppercase tracking-wider mt-1">{profile?.role || "Global Admin"}</p>
+                                    <p className="text-sm font-bold text-primary-green uppercase tracking-wider mt-1">{profile?.subRole || profile?.role || "Administrator"}</p>
                                     
                                     <div className="w-full mt-8 space-y-4 pt-6 border-t border-gray-50">
                                         <div className="flex items-center justify-between text-sm">
