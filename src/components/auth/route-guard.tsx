@@ -6,17 +6,20 @@ import { getCurrentUserRole, hasRoutePermission, AdminRole } from "@/lib/permiss
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const PUBLIC_ROUTES = ["/login", "/delete-account", "/expired"];
+const isPublicRoute = (path: string) => {
+    const clean = path.replace(/\/$/, "") || "/";
+    return clean === "/login" || clean === "/delete-account" || clean === "/expired" || clean.startsWith("/login");
+};
 
 export function RouteGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [authorized, setAuthorized] = useState<boolean | null>(null);
-    const [userRole, setUserRole] = useState<AdminRole>("Super Admin");
+    const [userRole, setUserRole] = useState<AdminRole>("Admin");
 
     useEffect(() => {
         // Check if route is public
-        if (PUBLIC_ROUTES.includes(pathname)) {
+        if (isPublicRoute(pathname)) {
             setAuthorized(true);
             return;
         }
@@ -33,9 +36,16 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
         const role = getCurrentUserRole();
         setUserRole(role);
 
+        // Admins have unrestricted access to everything
+        if (role === "Admin" || role === "ADMIN" || role === "Super Admin" || role === "SUPER_ADMIN") {
+            setAuthorized(true);
+            return;
+        }
+
         // Normalize base pathname (e.g. /users/create -> /users)
-        const baseRoute = "/" + pathname.split("/")[1];
-        const isAllowed = hasRoutePermission(role, pathname) || hasRoutePermission(role, baseRoute);
+        const cleanPath = pathname.replace(/\/$/, "") || "/";
+        const baseRoute = "/" + cleanPath.split("/")[1];
+        const isAllowed = hasRoutePermission(role, cleanPath) || hasRoutePermission(role, baseRoute);
 
         if (isAllowed) {
             setAuthorized(true);
@@ -45,7 +55,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     }, [pathname, router]);
 
     // Render public pages immediately
-    if (PUBLIC_ROUTES.includes(pathname)) {
+    if (isPublicRoute(pathname)) {
         return <>{children}</>;
     }
 

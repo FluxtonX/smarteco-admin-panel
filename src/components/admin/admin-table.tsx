@@ -21,6 +21,8 @@ interface AdminTableProps {
 }
 
 const ROLE_STYLES: Record<string, string> = {
+    "Admin": "bg-red-100 text-red-700 border border-red-200",
+    "ADMIN": "bg-red-100 text-red-700 border border-red-200",
     "Super Admin": "bg-red-100 text-red-700 border border-red-200",
     "SUPER_ADMIN": "bg-red-100 text-red-700 border border-red-200",
     "Waste Management (COPED)": "bg-purple-100 text-purple-700 border border-purple-200",

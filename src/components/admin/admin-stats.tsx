@@ -24,7 +24,7 @@ const STAT_CARDS = [
     },
     {
         key: "superAdmins" as keyof AdminStats,
-        label: "Super Admins",
+        label: "Primary Admins",
         icon: ShieldAlert,
         iconBg: "bg-red-50",
         iconColor: "text-red-500",

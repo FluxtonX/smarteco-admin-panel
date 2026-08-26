@@ -8,7 +8,7 @@ interface RolePermissionMatrixProps {
 }
 
 const ROLE_COLUMNS: { key: keyof Omit<RolePermissionMatrix, "module">; label: string }[] = [
-    { key: "superAdmin", label: "SUPER ADMIN" },
+    { key: "superAdmin", label: "ADMIN" },
     { key: "operations", label: "OPERATIONS" },
     { key: "finance", label: "FINANCE" },
     { key: "iot", label: "IOT" },

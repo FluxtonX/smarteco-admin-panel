@@ -18,7 +18,7 @@ import {
 import { Plus, X, UserPlus } from "lucide-react";
 
 const ROLES: AdminRole[] = [
-    "Super Admin",
+    "Admin",
     "Waste Management (COPED)",
     "Operations Manager",
     "Finance Admin",

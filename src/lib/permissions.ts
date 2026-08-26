@@ -1,4 +1,6 @@
 export type AdminRole =
+    | "Admin"
+    | "ADMIN"
     | "Super Admin"
     | "SUPER_ADMIN"
     | "Waste Management (COPED)"
@@ -14,35 +16,26 @@ export type AdminRole =
     | "Customer"
     | "CUSTOMER";
 
+export const ALL_ADMIN_ROUTES = [
+    "/dashboard",
+    "/users",
+    "/collectors",
+    "/pickups",
+    "/bins",
+    "/sorting",
+    "/rewards",
+    "/payments",
+    "/referrals",
+    "/reports",
+    "/settings",
+    "/admin",
+];
+
 export const ROLE_PERMISSIONS: Record<string, string[]> = {
-    "Super Admin": [
-        "/dashboard",
-        "/users",
-        "/collectors",
-        "/pickups",
-        "/bins",
-        "/sorting",
-        "/rewards",
-        "/payments",
-        "/referrals",
-        "/reports",
-        "/settings",
-        "/admin",
-    ],
-    "SUPER_ADMIN": [
-        "/dashboard",
-        "/users",
-        "/collectors",
-        "/pickups",
-        "/bins",
-        "/sorting",
-        "/rewards",
-        "/payments",
-        "/referrals",
-        "/reports",
-        "/settings",
-        "/admin",
-    ],
+    "Admin": ALL_ADMIN_ROUTES,
+    "ADMIN": ALL_ADMIN_ROUTES,
+    "Super Admin": ALL_ADMIN_ROUTES,
+    "SUPER_ADMIN": ALL_ADMIN_ROUTES,
     "Waste Management (COPED)": [
         "/dashboard",
         "/users",
@@ -159,7 +152,7 @@ export function getCurrentUserRole(): AdminRole {
             }
         } catch { }
     }
-    return "Super Admin";
+    return "Admin";
 }
 
 export function setCurrentUserRole(role: AdminRole) {
@@ -169,7 +162,7 @@ export function setCurrentUserRole(role: AdminRole) {
 }
 
 export function hasRoutePermission(role: AdminRole, href: string): boolean {
-    if (role === "Super Admin" || role === "SUPER_ADMIN") return true;
+    if (role === "Admin" || role === "ADMIN" || role === "Super Admin" || role === "SUPER_ADMIN") return true;
     const allowedRoutes = ROLE_PERMISSIONS[role] || [];
     return allowedRoutes.includes(href);
 }
@@ -184,7 +177,7 @@ export function isReadOnlyRole(role: AdminRole): boolean {
 }
 
 export function canCreateAccountType(currentRole: AdminRole, targetRole: string): boolean {
-    if (currentRole === "Super Admin" || currentRole === "SUPER_ADMIN") return true;
+    if (currentRole === "Admin" || currentRole === "ADMIN" || currentRole === "Super Admin" || currentRole === "SUPER_ADMIN") return true;
     if (currentRole === "Waste Management (COPED)" || currentRole === "WASTE_MANAGEMENT_COPED") {
         const allowedTargets = [
             "Operations Manager",

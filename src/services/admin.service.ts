@@ -56,8 +56,8 @@ class AdminService {
                     name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Admin',
                     email: u.email || "",
                     phone: u.phone || "",
-                    role: (u.subRole || 'Super Admin') as AdminRole,
-                    permissions: u.permissions || [u.subRole || 'Super Admin'],
+                    role: ((u.subRole === 'Super Admin' ? 'Admin' : u.subRole) || 'Admin') as AdminRole,
+                    permissions: u.permissions || [u.subRole || 'Admin'],
                     status: (u.isActive === false ? 'Inactive' : 'Active') as AdminStatus,
                     timestamp: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
                     avatarUrl: u.avatarUrl
@@ -71,7 +71,7 @@ class AdminService {
         return {
             totalAdmins: admins.length,
             activeAdmins: admins.filter(a => a.status === 'Active').length,
-            superAdmins: admins.filter(a => a.role === 'Super Admin').length,
+            superAdmins: admins.filter(a => a.role === 'Admin' || a.role === 'Super Admin').length,
             operationsStaff: admins.filter(a => a.role === 'Operations Manager').length
         };
     }
