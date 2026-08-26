@@ -6,7 +6,8 @@ import { getCurrentUserRole, hasRoutePermission, AdminRole } from "@/lib/permiss
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const isPublicRoute = (path: string) => {
+const isPublicRoute = (path: string | null | undefined) => {
+    if (!path) return false;
     const clean = path.replace(/\/$/, "") || "/";
     return clean === "/login" || clean === "/delete-account" || clean === "/expired" || clean.startsWith("/login");
 };
@@ -18,6 +19,11 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     const [userRole, setUserRole] = useState<AdminRole>("Admin");
 
     useEffect(() => {
+        if (!pathname) {
+            setAuthorized(true);
+            return;
+        }
+
         // Check if route is public
         if (isPublicRoute(pathname)) {
             setAuthorized(true);
@@ -44,7 +50,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
         // Normalize base pathname (e.g. /users/create -> /users)
         const cleanPath = pathname.replace(/\/$/, "") || "/";
-        const baseRoute = "/" + cleanPath.split("/")[1];
+        const baseRoute = "/" + (cleanPath.split("/")[1] || "");
         const isAllowed = hasRoutePermission(role, cleanPath) || hasRoutePermission(role, baseRoute);
 
         if (isAllowed) {
@@ -55,7 +61,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     }, [pathname, router]);
 
     // Render public pages immediately
-    if (isPublicRoute(pathname)) {
+    if (pathname && isPublicRoute(pathname)) {
         return <>{children}</>;
     }
 

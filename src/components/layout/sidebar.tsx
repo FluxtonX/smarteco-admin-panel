@@ -45,7 +45,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
-    const [currentRole, setRoleState] = useState<AdminRole>("Super Admin");
+    const [currentRole, setRoleState] = useState<AdminRole>("Admin");
 
     useEffect(() => {
         setRoleState(getCurrentUserRole());
