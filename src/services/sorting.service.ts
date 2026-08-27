@@ -58,6 +58,35 @@ export interface KioskRecord {
     createdAt: string;
 }
 
+export interface KioskTelemetryEvent {
+    id: string;
+    eventId: string;
+    kioskId: string;
+    sessionId: string | null;
+    appVersion: string | null;
+    schemaVersion: number | null;
+    occurredAt: string;
+    seq: number | null;
+    eventType: string;
+    category: string | null;
+    binId: string | null;
+    item: string | null;
+    confidence: number | null;
+    language: string | null;
+    material: string | null;
+    massG: number | null;
+    massBasis: string | null;
+    co2Factor: number | null;
+    co2Kg: number | null;
+    diverted: boolean;
+    fillLevelAfter: number | null;
+    createdAt: string;
+    kiosk?: {
+        name: string | null;
+        location: string | null;
+    } | null;
+}
+
 // ─── SERVICE ──────────────────────────────────────
 
 export const sortingService = {
@@ -80,6 +109,26 @@ export const sortingService = {
         const qs = query.toString();
         const res = await apiGet<{ success: boolean; data: SortingEvent[]; meta: any }>(
             `/admin/sorting/events${qs ? `?${qs}` : ""}`
+        );
+        return { data: res.data, meta: res.meta };
+    },
+
+    getTelemetryEvents: async (params?: {
+        page?: number;
+        limit?: number;
+        kioskId?: string;
+        eventType?: string;
+        search?: string;
+    }): Promise<{ data: KioskTelemetryEvent[]; meta: { page: number; limit: number; total: number; totalPages: number } }> => {
+        const query = new URLSearchParams();
+        if (params?.page) query.set("page", String(params.page));
+        if (params?.limit) query.set("limit", String(params.limit));
+        if (params?.kioskId) query.set("kioskId", params.kioskId);
+        if (params?.eventType) query.set("eventType", params.eventType);
+        if (params?.search) query.set("search", params.search);
+        const qs = query.toString();
+        const res = await apiGet<{ success: boolean; data: KioskTelemetryEvent[]; meta: any }>(
+            `/admin/sorting/kiosk-telemetry${qs ? `?${qs}` : ""}`
         );
         return { data: res.data, meta: res.meta };
     },

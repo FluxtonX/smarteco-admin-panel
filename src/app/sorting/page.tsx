@@ -22,6 +22,7 @@ import {
     SortingStats,
     SortingEvent,
     KioskRecord,
+    KioskTelemetryEvent,
 } from "@/services/sorting.service";
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -49,33 +50,39 @@ const CATEGORY_BAR_COLORS: Record<string, string> = {
 export default function AISortingPage() {
     const [stats, setStats] = useState<SortingStats | null>(null);
     const [events, setEvents] = useState<SortingEvent[]>([]);
+    const [telemetryEvents, setTelemetryEvents] = useState<KioskTelemetryEvent[]>([]);
     const [kiosks, setKiosks] = useState<KioskRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<"overview" | "events" | "kiosks">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "events" | "kiosks" | "telemetry">("overview");
     const [eventPage, setEventPage] = useState(1);
+    const [telemetryPage, setTelemetryPage] = useState(1);
     const [eventMeta, setEventMeta] = useState({ total: 0, totalPages: 0 });
+    const [telemetryMeta, setTelemetryMeta] = useState({ total: 0, totalPages: 0 });
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
     const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
 
     const loadData = useCallback(async (showSpinner = true) => {
         if (showSpinner) setIsLoading(true);
         try {
-            const [statsData, eventsData, kiosksData] = await Promise.all([
+            const [statsData, eventsData, kiosksData, telemetryData] = await Promise.all([
                 sortingService.getStats(),
                 sortingService.getEvents({ page: eventPage, limit: 15 }),
                 sortingService.getKiosks(),
+                sortingService.getTelemetryEvents({ page: telemetryPage, limit: 15 }),
             ]);
             setStats(statsData);
             setEvents(eventsData.data);
             setEventMeta(eventsData.meta);
             setKiosks(kiosksData);
+            setTelemetryEvents(telemetryData.data);
+            setTelemetryMeta(telemetryData.meta);
         } catch (error) {
             console.error("Failed to load sorting data:", error);
         } finally {
             if (showSpinner) setIsLoading(false);
         }
-    }, [eventPage]);
+    }, [eventPage, telemetryPage]);
 
     useEffect(() => {
         loadData(true);
@@ -113,6 +120,7 @@ export default function AISortingPage() {
     const tabs = [
         { id: "overview" as const, label: "Overview" },
         { id: "events" as const, label: "Sorting Events" },
+        { id: "telemetry" as const, label: "Raw Kiosk Telemetry" },
         { id: "kiosks" as const, label: "Kiosks & API Keys" },
     ];
 
@@ -366,6 +374,125 @@ export default function AISortingPage() {
                                             <button
                                                 onClick={() => setEventPage((p) => Math.min(eventMeta.totalPages, p + 1))}
                                                 disabled={eventPage >= eventMeta.totalPages}
+                                                className="p-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* RAW TELEMETRY TAB */}
+                    {activeTab === "telemetry" && (
+                        <div className="space-y-4 animate-in fade-in duration-500">
+                            <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-gray-900">
+                                            Raw Kiosk Telemetry Events ({telemetryMeta.total.toLocaleString()})
+                                        </h3>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            Schema v2 AI classification, item scan, and session telemetry ingested from kiosks.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b border-gray-100">
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Event Type</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Item Description</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Category / Material</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Confidence</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Mass (g)</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">CO₂ (kg)</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Kiosk ID</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Session ID</th>
+                                                <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase">Occurred At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {telemetryEvents.length ? telemetryEvents.map((t) => (
+                                                <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                                                    <td className="py-2.5 px-3">
+                                                        <span className={cn(
+                                                            "text-[11px] font-bold px-2 py-0.5 rounded-full",
+                                                            t.eventType === "SORT"
+                                                                ? "bg-green-100 text-green-700"
+                                                                : t.eventType === "PHONE_SAVED"
+                                                                ? "bg-blue-100 text-blue-700"
+                                                                : "bg-purple-100 text-purple-700"
+                                                        )}>
+                                                            {t.eventType}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs font-semibold text-gray-800">
+                                                        {t.item || "—"}
+                                                    </td>
+                                                    <td className="py-2.5 px-3">
+                                                        {t.category ? (
+                                                            <span className={cn(
+                                                                "text-[11px] font-bold px-2 py-0.5 rounded-full",
+                                                                CATEGORY_COLORS[t.category] || "bg-gray-100 text-gray-700"
+                                                            )}>
+                                                                {t.category}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">
+                                                                {t.material ? `Mat: ${t.material}` : "—"}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs font-semibold text-gray-700">
+                                                        {t.confidence !== null ? `${(t.confidence * (t.confidence <= 1 ? 100 : 1)).toFixed(0)}%` : "—"}
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs text-gray-600">
+                                                        {t.massG !== null ? `${t.massG}g` : "—"}
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs text-gray-600">
+                                                        {t.co2Kg !== null ? `${t.co2Kg} kg` : "—"}
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs font-mono text-gray-600">
+                                                        {t.kioskId}
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs font-mono text-gray-500">
+                                                        {t.sessionId || "—"}
+                                                    </td>
+                                                    <td className="py-2.5 px-3 text-xs text-gray-500">
+                                                        {new Date(t.occurredAt).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            )) : (
+                                                <tr>
+                                                    <td colSpan={9} className="text-center py-8 text-gray-400 text-sm">
+                                                        No telemetry events recorded in DB yet. Post to <code>/api/v1/sorting/kiosk-export</code> to test!
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Pagination */}
+                                {telemetryMeta.totalPages > 1 && (
+                                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                                        <span className="text-xs text-gray-500">
+                                            Page {telemetryPage} of {telemetryMeta.totalPages}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setTelemetryPage((p) => Math.max(1, p - 1))}
+                                                disabled={telemetryPage <= 1}
+                                                className="p-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <ChevronLeft className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setTelemetryPage((p) => Math.min(telemetryMeta.totalPages, p + 1))}
+                                                disabled={telemetryPage >= telemetryMeta.totalPages}
                                                 className="p-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
                                                 <ChevronRight className="w-4 h-4" />
